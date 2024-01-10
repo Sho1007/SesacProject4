@@ -61,6 +61,15 @@ void ABD_Turret_Base::Tick(float DeltaTime)
 		CurrentTIme = 0.f;
 	}
 	
+	if (TopPriorityTarget) {
+		// 디버그라인 말고 이펙트로 CurrentTarget을 가리키도록 해야 함
+		DrawDebugLine(GetWorld(), AttackStartPointComp->GetComponentLocation(), TopPriorityTarget->GetActorLocation(), FColor::Red, false, -1, 0, 1.0f);
+	}
+	else if (CurrentTarget) {
+		// 디버그라인 말고 이펙트로 CurrentTarget을 가리키도록 해야 함
+		DrawDebugLine(GetWorld(), AttackStartPointComp->GetComponentLocation(), CurrentTarget->GetActorLocation(), FColor::Red, false, -1, 0, 1.0f);
+	}
+
 }
 
 void ABD_Turret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
