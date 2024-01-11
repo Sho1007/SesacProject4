@@ -1,37 +1,36 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BD_Turret_Base.h"
-#include "Components/SphereComponent.h"
-#include "Building_Base.h"
-#include "Components/SceneComponent.h"
-#include "Projectile_Turret.h"
+#include "Building/Turret_Base.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SphereComponent.h>
+#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SceneComponent.h>
+#include "Building/Projectile_Turret.h"
 
-ABD_Turret_Base::ABD_Turret_Base()
+ATurret_Base::ATurret_Base()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 포탑의 사정거리를 감지할 콜리전
 	DetectCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("DetectCollisionComp"));
 	DetectCollisionComp->SetupAttachment(RootComponent);
-	DetectCollisionComp->SetRelativeScale3D(FVector(4.0f));
-	DetectCollisionComp->SetRelativeLocation(FVector(0, 0, -20));
+	DetectCollisionComp->SetSphereRadius(500);
 
 	// 공격 - 발사체를 스폰할 위치
 	AttackStartPointComp = CreateDefaultSubobject<USceneComponent>(TEXT("AttackStartPointComp"));
 	AttackStartPointComp->SetupAttachment(RootComponent);
-	AttackStartPointComp->SetRelativeLocation(FVector(0, 0, 90));
+	AttackStartPointComp->SetRelativeLocation(FVector(50, 160, 590));
 
 	UE_LOG(LogTemp, Warning, TEXT("New Log========================================================"));
 
 }
 
-void ABD_Turret_Base::Tick(float DeltaTime)
+void ATurret_Base::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
 
 	// 충돌 중인 액터가 있고, CurrentTarget이 없는 경우
 	if (DetectTargets_Test.Num() > 0 && CurrentTarget == nullptr) {
-		
+
 		// 공격대상 재지정 함수 호출
 		RetargetCurrentTarget();
 
@@ -42,7 +41,7 @@ void ABD_Turret_Base::Tick(float DeltaTime)
 	// 공격기능
 	// 만약 공격대상이 지정되어 있다면
 	if (CurrentTarget || TopPriorityTarget) {
-		
+
 		// 시간을 카운트 시작
 		CurrentTIme += DeltaTime;
 
@@ -60,7 +59,7 @@ void ABD_Turret_Base::Tick(float DeltaTime)
 	{
 		CurrentTIme = 0.f;
 	}
-	
+
 	if (TopPriorityTarget) {
 		// 디버그라인 말고 이펙트로 CurrentTarget을 가리키도록 해야 함
 		DrawDebugLine(GetWorld(), AttackStartPointComp->GetComponentLocation(), TopPriorityTarget->GetActorLocation(), FColor::Red, false, -1, 0, 1.0f);
@@ -72,7 +71,7 @@ void ABD_Turret_Base::Tick(float DeltaTime)
 
 }
 
-void ABD_Turret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
+void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
 
@@ -80,9 +79,13 @@ void ABD_Turret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	// 포탑에 접근한 액터를 배열에 저장 -> 충돌한 액터를 배열에 저장 
 	// + 감지된 액터가 적인 경우에만 저장하도록 해야 함*************************
+
+	if (OtherActor->IsA<AProjectile_Turret>()) { // 임시
+		return;
+	}
+
 	DetectTargets_Test.Add(OtherActor);
 
-	/* &&&&&&&&&&&&&&&&&로그
 	// 배열의 인덱스 값을 출력하는 로그
 	for (AActor* Actor : DetectTargets_Test)
 	{
@@ -92,6 +95,7 @@ void ABD_Turret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 			UE_LOG(LogTemp, Warning, TEXT("Detected Actor: %s"), *Actor->GetName());
 		}
 	}
+	/* &&&&&&&&&&&&&&&&&로그
 	*/
 
 	// CurrentTarget가 없는 경우, 배열의 0번 인덱스 = 가장 먼저 접근한 액터를 CurrentTarget에 저장 -> 공격대상으로 삼음
@@ -142,10 +146,9 @@ void ABD_Turret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 
 
 	//UE_LOG(LogTemp, Warning, TEXT("BiginOverlap-----------------------------------------------------"));
-
 }
 
-void ABD_Turret_Base::NotifyActorEndOverlap(AActor* OtherActor)
+void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorEndOverlap(OtherActor);
 
@@ -157,7 +160,7 @@ void ABD_Turret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 	DetectTargets_Test.Remove(OtherActor); // 사실상 기능으로는 이 코드만 필요함
 
 	/*
-	// 포탑에 접근 중인 액터가 남아있는지 검사하는 로그 
+	// 포탑에 접근 중인 액터가 남아있는지 검사하는 로그
 	if (DetectTargets_Test.Num() == 0) {
 		UE_LOG(LogTemp, Warning, TEXT("No Detect"));
 
@@ -209,7 +212,7 @@ void ABD_Turret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 
 }
 
-void ABD_Turret_Base::RetargetCurrentTarget()
+void ATurret_Base::RetargetCurrentTarget()
 {
 	// 충돌하고 있는 유닛의 우선순위에 따라 CurrentTarget을 재지정한다. 
 
@@ -267,7 +270,7 @@ void ABD_Turret_Base::RetargetCurrentTarget()
 
 }
 
-void ABD_Turret_Base::Attact_SpawnProjectile()
+void ATurret_Base::Attact_SpawnProjectile()
 {
 	// 이거는 아닌 듯
 	/*
@@ -277,11 +280,11 @@ void ABD_Turret_Base::Attact_SpawnProjectile()
 
 	GetWorld()->LineTraceSingleByChannel(hitInfo, StartLocation, EndLocation, ECC_Visibility);
 	*/
-	
-	
+
+
 	// 발사체를 스폰해야 함 - 공격 자체는 발사체가 타겟을 따라가는 방식으로 이루어질 것
 	AProjectile_Turret* NewProjectile = GetWorld()->SpawnActor<AProjectile_Turret>(ProjectileFactory, AttackStartPointComp->GetComponentTransform());
-	
+
 	//UE_LOG(LogTemp, Warning, TEXT("Spawn Attack"));
 
 	if (NewProjectile) {
@@ -370,5 +373,4 @@ void ABD_Turret_Base::Attact_SpawnProjectile()
 
 
 */
-
 

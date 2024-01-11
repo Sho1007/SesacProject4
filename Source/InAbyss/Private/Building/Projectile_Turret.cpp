@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Projectile_Turret.h"
-#include "Components/SphereComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "BD_Turret_Base.h"
+#include "Building/Projectile_Turret.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SphereComponent.h>
+#include <../../../../../../../Source/Runtime/Engine/Classes/Components/StaticMeshComponent.h>
 #include <../../../../../../../Source/Runtime/Engine/Classes/Particles/ParticleSystemComponent.h>
+#include "Building/Turret_Base.h"
 
 // Sets default values
 AProjectile_Turret::AProjectile_Turret()
@@ -24,20 +24,15 @@ AProjectile_Turret::AProjectile_Turret()
 	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
 	ParticleComp->SetupAttachment(RootComponent);
 
-
-
-
 }
 
 // Called when the game starts or when spawned
 void AProjectile_Turret::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	// 스폰시 스폰한 액터의 스케일을 따라가기 때문에, 시작시 스케일을 설정해주어야 함
-	CollisionComp->SetRelativeScale3D(FVector(1));
-
-
+	//CollisionComp->SetRelativeScale3D(FVector(1));
 
 }
 
@@ -45,10 +40,10 @@ void AProjectile_Turret::BeginPlay()
 void AProjectile_Turret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	// 발사체가 AttackTarget를 따라감 - 확정유도공격
 	if (AttackTarget) {
-		
+
 		FVector Direction = (AttackTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 		//SetActorRotation(Direction.Rotation());
 
@@ -69,16 +64,16 @@ void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	// 충돌한 액터가 AttackTarget인 경우에만 함수를 호출 -  이외의 액터들은 무시할 수 있게 됨
 	if (OtherActor == AttackTarget) {
-		
-		Attack_Overlap();
 
+		Attack_Overlap();
+		UE_LOG(LogTemp, Warning, TEXT("destroy"));
 	}
 }
 
 void AProjectile_Turret::OwnerSetting()
 {
 	// 자신의 Owner를 사용할 수 있도록 가져와서 변수에 저장함
-	OwnerTurret = Cast<ABD_Turret_Base>(GetOwner());
+	OwnerTurret = Cast<ATurret_Base>(GetOwner());
 
 	//UE_LOG(LogTemp, Warning, TEXT("this : %s"), *this->GetOwner()->GetName());
 
@@ -118,7 +113,6 @@ void AProjectile_Turret::AttackTargeting()
 
 void AProjectile_Turret::Attack_Overlap()
 {
-	
 	// AttackTarget에게 데미지를 주어야 함
 
 
