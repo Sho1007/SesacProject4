@@ -3,19 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Building_Base.h"
-#include "BD_Turret_Base.generated.h"
+#include "Building/Building_Base.h"
+#include "Turret_Base.generated.h"
 
 /**
- *
+ * 
  */
 UCLASS()
-class INABYSS_API ABD_Turret_Base : public ABuilding_Base
+class INABYSS_API ATurret_Base : public ABuilding_Base
 {
 	GENERATED_BODY()
-
+	
 public:
-	ABD_Turret_Base();
+	ATurret_Base();
 
 	void Tick(float DeltaTime) override;
 
