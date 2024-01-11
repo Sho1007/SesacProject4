@@ -13,5 +13,4 @@ UCLASS()
 class INABYSS_API AInGameGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
 };
