@@ -38,6 +38,7 @@ public:
 	class ABD_Turret_Base* OwnerTurret;
 
 	// 타겟팅 대상을 저장할 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class AActor* AttackTarget;
 
 	float Speed = 1000.f;

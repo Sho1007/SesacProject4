@@ -32,7 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* MeshComp;
 
+public:
+	float Temp_CurrentHealthPoiont;
+	float Temp_MaxHealthPoiont;
 
-
-
+	void RecoveryHP();
 };

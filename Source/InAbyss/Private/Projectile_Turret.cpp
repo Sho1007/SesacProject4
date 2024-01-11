@@ -59,6 +59,10 @@ void AProjectile_Turret::Tick(float DeltaTime)
 
 	}
 
+	if (!AttackTarget) {
+		Destroy();
+	}
+
 }
 
 void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
