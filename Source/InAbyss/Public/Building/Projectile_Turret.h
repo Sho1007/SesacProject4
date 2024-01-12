@@ -22,7 +22,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -35,9 +34,10 @@ public:
 	class UParticleSystemComponent* ParticleComp;
 
 	// Owner값을 저장할 변수
-	class ABD_Turret_Base* OwnerTurret;
+	class ATurret_Base* OwnerTurret;
 
 	// 타겟팅 대상을 저장할 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class AActor* AttackTarget;
 
 	float Speed = 1000.f;

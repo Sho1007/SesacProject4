@@ -30,9 +30,10 @@ public:
 
 	// 메쉬 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UStaticMeshComponent* MeshComp;
+	class USkeletalMeshComponent* MeshComp;
 
-
-
+public:
+	float Temp_CurrentHealthPoiont;
+	float Temp_MaxHealthPoiont;
 
 };
