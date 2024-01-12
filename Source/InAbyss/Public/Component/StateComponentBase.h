@@ -34,11 +34,18 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 
 	// Getter
 	EFactionType GetFactionType() const;
 	// Setter
 	void SetFactionType(EFactionType NewFactionType);
+	
+	void ApplyDamage(float ADDamage = 0.f, float APDamage = 0.f);
+
+	UFUNCTION()
+	void OnRep_Health();
 	
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -46,5 +53,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth = 100.f;
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_Health")
 	float Health;
 };

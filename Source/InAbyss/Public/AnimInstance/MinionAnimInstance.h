@@ -16,9 +16,21 @@ public:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	void PlayAttackMontage();
+	void PlayDeathMontage();
+
+	
 protected:
 	UPROPERTY()
 	AMinionBase* Owner;
 	UPROPERTY(BlueprintReadOnly) 
 	bool bIsMove = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* AttackMontage;
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* DeathMontage;
+
+	UFUNCTION()
+	void AnimNotify_OnDeathFinished();
 };

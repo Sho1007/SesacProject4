@@ -28,3 +28,25 @@ void UMinionAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsMove = false;
 	}
 }
+
+void UMinionAnimInstance::PlayAttackMontage()
+{
+	if (AttackMontage == nullptr || IsAnyMontagePlaying()) return;
+	
+	Montage_Play(AttackMontage);
+}
+
+void UMinionAnimInstance::PlayDeathMontage()
+{
+	if (DeathMontage)
+	{
+		StopAllMontages(0.f);
+		Montage_Play(DeathMontage);
+	}
+}
+
+void UMinionAnimInstance::AnimNotify_OnDeathFinished()
+{
+	UE_LOG(LogTemp, Warning, TEXT("UMinionAnimInstance::AnimNotify_OnDeathFinished"));
+	GetOwningActor()->Destroy();
+}
