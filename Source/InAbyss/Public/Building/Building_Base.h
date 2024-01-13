@@ -7,6 +7,7 @@
 #include "Interface/StateInterface.h"
 #include "Building_Base.generated.h"
 
+
 UCLASS()
 class INABYSS_API ABuilding_Base : public AActor, public IStateInterface
 {
@@ -33,13 +34,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USkeletalMeshComponent* MeshComp;
 
-public: // 다른 클래스의 액터 컴포넌트를 붙인 부분
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	class UStateComponentBase* StateComponentBase_Building;
 
+public: // 다른 클래스의 액터 컴포넌트를 붙인 부분
+	// 상태 컴포넌트 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "StateComponents")
+	class UStateComponentBase* StateComponent_Building;
+	
+	/*
 public:
 	float CurrentHealthPoiont_Building;
 	float MaxHealthPoiont_Building;
+	*/
 
 public: // 인터페이스 가상함수 상속 부분
 	//  피격시 호출될 함수
