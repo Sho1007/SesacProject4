@@ -6,11 +6,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Building/Turret_Base.h"
+#include "Enemy/MinionBase.h"
 
 // Sets default values
 AProjectile_Turret::AProjectile_Turret()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
@@ -38,7 +39,7 @@ void AProjectile_Turret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 발사체가 AttackTarget를 따라감 - 확정유도공격
+	// 발사체가 AttackTarget를 따라 이동 - 확정유도공격
 	if (AttackTarget) {
 
 		FVector Direction = (AttackTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal();
@@ -59,12 +60,28 @@ void AProjectile_Turret::Tick(float DeltaTime)
 
 void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 {
+	// 부딪힌 액터의 클래스별로 기능 호출
+	
+	// 공격기능
 	// 충돌한 액터가 AttackTarget인 경우에만 함수를 호출 -  이외의 액터들은 무시할 수 있게 됨
 	if (OtherActor == AttackTarget) {
+
+		/*
+		// Test =================================================================
+		// 타겟이 미니언인 경우
+		if (OtherActor->IsA<AMinionBase>()) {
+			class AMinionBase* TargetMinion = Cast<AMinionBase>(OtherActor);
+			TargetMinion->TestDamageFunction();
+
+		}
+		// Test =================================================================
+		*/
 
 		Attack_OverlapTarget();
 
 	}
+
+	
 }
 
 void AProjectile_Turret::OwnerSetting()
@@ -82,30 +99,19 @@ void AProjectile_Turret::AttackTargeting()
 	if (AttackTarget) {
 		return;
 	}
-	
-	if (OwnerTurret) {
-		// 발사체가 따라갈 타겟을 저장함
-		if (OwnerTurret->TopPriorityTarget) {
 
-			// 최우선 순위의 타겟이 있다면 이를 AttackTarget에 저장
-			AttackTarget = OwnerTurret->TopPriorityTarget;
+	// 발사체가 따라갈 타겟을 저장함
+	if (OwnerTurret && OwnerTurret->CurrentTarget) {
 
-			//UE_LOG(LogTemp, Warning, TEXT("AttackTarget : %s"), *AttackTarget->GetName());
+		// CurrentTarget이 있다면 이를 AttackTarget에 저장
+		AttackTarget = OwnerTurret->CurrentTarget;
 
-		}
-		else if (OwnerTurret->CurrentTarget) {
+		//UE_LOG(LogTemp, Warning, TEXT("AttackTarget : %s"), *AttackTarget->GetName());
 
-			// CurrentTarget이 있다면 이를 AttackTarget에 저장
-			AttackTarget = OwnerTurret->CurrentTarget;
-
-			//UE_LOG(LogTemp, Warning, TEXT("AttackTarget : %s"), *AttackTarget->GetName());
-
-		}
-		else {
-			// 타겟이 없다면 발사체를 파괴
-			Destroy();
-		}
-
+	}
+	else {
+		// 타겟이 없다면 발사체를 파괴
+		Destroy();
 	}
 
 }

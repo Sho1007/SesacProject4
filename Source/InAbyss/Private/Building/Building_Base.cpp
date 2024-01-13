@@ -23,7 +23,7 @@ ABuilding_Base::ABuilding_Base()
 	MeshComp->SetupAttachment(RootComponent);
 
 
-	StateComponentBase_Building = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponentBase_Building"));
+	StateComponent_Building = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponentBase_Building"));
 
 }
 
@@ -31,7 +31,7 @@ ABuilding_Base::ABuilding_Base()
 void ABuilding_Base::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
