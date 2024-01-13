@@ -2,9 +2,9 @@
 
 
 #include "Building/Projectile_Turret.h"
-#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SphereComponent.h>
-#include <../../../../../../../Source/Runtime/Engine/Classes/Components/StaticMeshComponent.h>
-#include <../../../../../../../Source/Runtime/Engine/Classes/Particles/ParticleSystemComponent.h>
+#include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Building/Turret_Base.h"
 
 // Sets default values
@@ -30,9 +30,6 @@ AProjectile_Turret::AProjectile_Turret()
 void AProjectile_Turret::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// 스폰시 스폰한 액터의 스케일을 따라가기 때문에, 시작시 스케일을 설정해주어야 함
-	//CollisionComp->SetRelativeScale3D(FVector(1));
 
 }
 
@@ -45,7 +42,7 @@ void AProjectile_Turret::Tick(float DeltaTime)
 	if (AttackTarget) {
 
 		FVector Direction = (AttackTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		//SetActorRotation(Direction.Rotation());
+		SetActorRotation(Direction.Rotation());
 
 		FVector TargetLocation = GetActorLocation() + Direction * Speed * DeltaTime;
 		SetActorLocation(TargetLocation);
@@ -53,9 +50,9 @@ void AProjectile_Turret::Tick(float DeltaTime)
 		//UE_LOG(LogTemp, Warning, TEXT("Success Tick"));
 
 	}
-
-	if (!AttackTarget) {
+	else {
 		Destroy();
+
 	}
 
 }
@@ -65,8 +62,8 @@ void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 	// 충돌한 액터가 AttackTarget인 경우에만 함수를 호출 -  이외의 액터들은 무시할 수 있게 됨
 	if (OtherActor == AttackTarget) {
 
-		Attack_Overlap();
-		UE_LOG(LogTemp, Warning, TEXT("destroy"));
+		Attack_OverlapTarget();
+
 	}
 }
 
@@ -81,10 +78,11 @@ void AProjectile_Turret::OwnerSetting()
 
 void AProjectile_Turret::AttackTargeting()
 {
+	// 이미 공격 대상이 정해져있다면 함수 종료
 	if (AttackTarget) {
 		return;
 	}
-
+	
 	if (OwnerTurret) {
 		// 발사체가 따라갈 타겟을 저장함
 		if (OwnerTurret->TopPriorityTarget) {
@@ -97,7 +95,7 @@ void AProjectile_Turret::AttackTargeting()
 		}
 		else if (OwnerTurret->CurrentTarget) {
 
-			// 저장된 타겟이 있다면 이를 AttackTarget에 저장
+			// CurrentTarget이 있다면 이를 AttackTarget에 저장
 			AttackTarget = OwnerTurret->CurrentTarget;
 
 			//UE_LOG(LogTemp, Warning, TEXT("AttackTarget : %s"), *AttackTarget->GetName());
@@ -109,9 +107,10 @@ void AProjectile_Turret::AttackTargeting()
 		}
 
 	}
+
 }
 
-void AProjectile_Turret::Attack_Overlap()
+void AProjectile_Turret::Attack_OverlapTarget()
 {
 	// AttackTarget에게 데미지를 주어야 함
 
