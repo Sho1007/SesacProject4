@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/StateInterface.h"
 #include "Building_Base.generated.h"
 
 UCLASS()
-class INABYSS_API ABuilding_Base : public AActor
+class INABYSS_API ABuilding_Base : public AActor, public IStateInterface
 {
 	GENERATED_BODY()
 	
@@ -32,8 +33,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USkeletalMeshComponent* MeshComp;
 
+public: // 다른 클래스의 액터 컴포넌트를 붙인 부분
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	class UStateComponentBase* StateComponentBase_Building;
+
 public:
-	float Temp_CurrentHealthPoiont;
-	float Temp_MaxHealthPoiont;
+	float CurrentHealthPoiont_Building;
+	float MaxHealthPoiont_Building;
+
+public: // 인터페이스 가상함수 상속 부분
+	//  피격시 호출될 함수
+	virtual void Damaged() override;
+
+	// 건축물이 파괴되었을 때 호출 = CurrentHealthPoiont_Building이 되었을 때 호출 
+	virtual void Die() override;
+
 
 };

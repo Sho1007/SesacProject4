@@ -51,6 +51,6 @@ public:
 	void AttackTargeting();
 
 	// 발사체가 AttackTarget과 overlap된 경우 호출할 기능 
-	void Attack_Overlap();
+	void Attack_OverlapTarget();
 
 };

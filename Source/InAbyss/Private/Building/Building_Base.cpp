@@ -2,8 +2,9 @@
 
 
 #include "Building/Building_Base.h"
-#include <../../../../../../../Source/Runtime/Engine/Classes/Components/CapsuleComponent.h>
-#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SkeletalMeshComponent.h>
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Component/StateComponentBase.h"
 
 // Sets default values
 ABuilding_Base::ABuilding_Base()
@@ -21,6 +22,9 @@ ABuilding_Base::ABuilding_Base()
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	MeshComp->SetupAttachment(RootComponent);
 
+
+	StateComponentBase_Building = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponentBase_Building"));
+
 }
 
 // Called when the game starts or when spawned
@@ -36,4 +40,8 @@ void ABuilding_Base::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+// 인터페이스 함수 - 자식 클래스에서 각자 재정의
+void ABuilding_Base::Damaged() {}
+void ABuilding_Base::Die() {}
 

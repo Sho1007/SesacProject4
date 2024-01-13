@@ -2,8 +2,8 @@
 
 
 #include "Building/Turret_Base.h"
-#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SphereComponent.h>
-#include <../../../../../../../Source/Runtime/Engine/Classes/Components/SceneComponent.h>
+#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h"
 #include "Building/Projectile_Turret.h"
 
 ATurret_Base::ATurret_Base()
@@ -20,7 +20,7 @@ ATurret_Base::ATurret_Base()
 	AttackStartPointComp->SetupAttachment(RootComponent);
 	AttackStartPointComp->SetRelativeLocation(FVector(50, 160, 590));
 
-	UE_LOG(LogTemp, Warning, TEXT("New Log========================================================"));
+	UE_LOG(LogTemp, Warning, TEXT("New Play Log========================================================"));
 
 }
 
@@ -28,8 +28,8 @@ void ATurret_Base::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 충돌 중인 액터가 있고, CurrentTarget이 없는 경우
-	if (DetectTargets_Test.Num() > 0 && CurrentTarget == nullptr) {
+	// CurrentTarget이 없고, 충돌 중인 액터가 있는 경우
+	if (CurrentTarget == nullptr && DetectTargets_Test.Num() > 0 ) { //  이후 조건 미니언, 챔피언 배열들 추가해서 수정 필요
 
 		// 공격대상 재지정 함수 호출
 		RetargetCurrentTarget();
@@ -55,16 +55,19 @@ void ATurret_Base::Tick(float DeltaTime)
 		}
 
 	}
-	else
+	else // 공격대상이 없으면 시간 초기화
 	{
 		CurrentTIme = 0.f;
 	}
 
-	if (TopPriorityTarget) {
+	// ----------------------------------------
+
+	// 타겟팅 대상 표시 기능
+	if (TopPriorityTarget) { // 최우선순위
 		// 디버그라인 말고 이펙트로 CurrentTarget을 가리키도록 해야 함
 		DrawDebugLine(GetWorld(), AttackStartPointComp->GetComponentLocation(), TopPriorityTarget->GetActorLocation(), FColor::Red, false, -1, 0, 1.0f);
 	}
-	else if (CurrentTarget) {
+	else if (CurrentTarget) { // 우선순위 
 		// 디버그라인 말고 이펙트로 CurrentTarget을 가리키도록 해야 함
 		DrawDebugLine(GetWorld(), AttackStartPointComp->GetComponentLocation(), CurrentTarget->GetActorLocation(), FColor::Red, false, -1, 0, 1.0f);
 	}
@@ -76,16 +79,20 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	Super::NotifyActorBeginOverlap(OtherActor);
 
 	// test ==================================================================================================
-
 	// 포탑에 접근한 액터를 배열에 저장 -> 충돌한 액터를 배열에 저장 
-	// + 감지된 액터가 적인 경우에만 저장하도록 해야 함*************************
 
+	// 임시 : 발사체는 배열에 저장하지 않음 - 이건 나중에 배열을 미니언, 챔피언만 인식하도록 하면 필요 없음
 	if (OtherActor->IsA<AProjectile_Turret>()) { // 임시
 		return;
 	}
 
+
+
+
+	// 범위에 들어온 대상을 공격대상 배열에 넣음
 	DetectTargets_Test.Add(OtherActor);
 
+	/* &&&&&&&&&&&&&&&&&로그
 	// 배열의 인덱스 값을 출력하는 로그
 	for (AActor* Actor : DetectTargets_Test)
 	{
@@ -95,7 +102,6 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 			UE_LOG(LogTemp, Warning, TEXT("Detected Actor: %s"), *Actor->GetName());
 		}
 	}
-	/* &&&&&&&&&&&&&&&&&로그
 	*/
 
 	// CurrentTarget가 없는 경우, 배열의 0번 인덱스 = 가장 먼저 접근한 액터를 CurrentTarget에 저장 -> 공격대상으로 삼음
@@ -103,16 +109,18 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 
 		CurrentTarget = DetectTargets_Test[0];
 
-
-
-
 		UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
 
 	}
 
 	// test ==================================================================================================
 
+
+
+
+
 	// 포탑의 콜리전과 충돌하는 액터를 배열에 저장한다. 
+	// + 감지된 액터가 적인 경우에만 저장하도록 해야 함*************************
 	/*
 
 	if (OtherActor->IsA<클래스 이름>()) {
@@ -134,14 +142,6 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 
 
 
-	// 나중에 조건 필요 - OtherActor가 챔피언 혹은 미니언인 경우에만 저장 => OtherActor를 if문으로 클래스를 검사한 뒤, 클래스에 맞는 배열에 저장할 것임
-	DetectTargets_SuperOrCanon.Add(OtherActor);
-
-	DetectTargets_Warrior.Add(OtherActor);
-
-	DetectTargets_Wizard.Add(OtherActor);
-
-	DetectTargets_EnemyChampion.Add(OtherActor);
 	*/
 
 
@@ -184,40 +184,61 @@ void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 
 
 
+	// 이탈 대상이 최우선 타겟이라면, 이를 공석으로 함
+	if (TopPriorityTarget  && TopPriorityTarget == OtherActor) {
+	
+		TopPriorityTarget = nullptr;
 
-
-
-	// 공격타겟의 이탈의 경우 - CurrentTarget가 챔피언이고, 포탑의 범위에서 벗어난 경우
-	if (CurrentTarget && CurrentTarget == OtherActor) {
-
-		CurrentTarget = nullptr;
-
-
-
-
-		//UE_LOG(LogTemp, Warning, TEXT("No CurrentTarget"));
-
-		/*
-		// 이 부분은 없어도 될 듯
-		// 공격 타겟이 없어졌을 때, DetectTargets_Test의 크기가 1이상 이라면 우선순위에 따라 CurrentTarget을 재설정하는 함수를 호출한다.
-		if (DetectTargets_Test.Num() > 0) {
-
-			RetargetCurrentTarget();
-
-		}
-		*/
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("EndOverlap-----------------------------------------------------"));
+	// 공격타겟이 이탈한 경우 - CurrentTarget이 포탑의 범위에서 벗어난 경우
+	if (CurrentTarget && CurrentTarget == OtherActor) {
+		
+		CurrentTarget = nullptr;
+
+	}
+
+	// 포탑의 범위에서 이탈한 액터를 배열에서 제거한다. - 제거할 때 인덱스는 자동으로 당겨서 정렬된다. 
+	/*
+
+	if (OtherActor->IsA<클래스 이름>()) {
+		DetectTargets_SuperOrCanon.Remove(OtherActor);
+
+	}
+	else if (OtherActor->IsA<클래스 이름>()) {
+		DetectTargets_Warrior.Remove(OtherActor);
+
+	}
+	else if (OtherActor->IsA<클래스 이름>()) {
+		DetectTargets_Wizard.Remove(OtherActor);
+
+	}
+	else if (OtherActor->IsA<클래스 이름>()) {
+		DetectTargets_EnemyChampion.Remove(OtherActor);
+
+	}
+	*/
+
 
 }
 
 void ATurret_Base::RetargetCurrentTarget()
 {
+	// 본래 공격받던 타겟이 사라졌을 경우 호출하도록 해야 한다. - CurrentTarget이 nullprt인 경우
+	// 혹은 최우선 대상이 생긴 경우, 호출해야 한다. - if(TopPriorityTarget) 인 경우
+	
 	// 충돌하고 있는 유닛의 우선순위에 따라 CurrentTarget을 재지정한다. 
 
-	// CurrentTarget이 있다면 함수 종료
+	// 만약 최우선순위 대상이 있다면, 이를 CurrentTarget로 하고 함수 종료
+	if (TopPriorityTarget) {
+		CurrentTarget = TopPriorityTarget;
+
+		return;
+	}
+
+	// 공격대상이 있다면 함수 종료
 	if (CurrentTarget) {
+
 		return;
 	}
 
@@ -228,7 +249,7 @@ void ATurret_Base::RetargetCurrentTarget()
 	if (DetectTargets_Test.Num() > 0) {
 		CurrentTarget = DetectTargets_Test[0];
 
-
+		return;
 
 		/*
 		// 타겟을 출력하는 로그
@@ -247,22 +268,19 @@ void ATurret_Base::RetargetCurrentTarget()
 
 
 
-
-
+	// 남아있는 배열이 있다면, 우선순위에 따라 0번 인덱스를 공격 대상으로 함 
 	// 1. 슈퍼/공성 미니언 ==== 2.전사 미니언 ==== 3. 마법사 미니언 ==== 4. 적 챔피언
 	if (DetectTargets_SuperOrCanon.Num() > 0) {
 		CurrentTarget = DetectTargets_SuperOrCanon[0];
 	}
 	else if (DetectTargets_Warrior.Num() > 0) {
 		CurrentTarget = DetectTargets_Warrior[0];
-
 	}
 	else if (DetectTargets_Wizard.Num() > 0) {
 		CurrentTarget = DetectTargets_Wizard[0];
 	}
 	else if (DetectTargets_EnemyChampion.Num() > 0) {
 		CurrentTarget = DetectTargets_EnemyChampion[0];
-
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
@@ -272,15 +290,6 @@ void ATurret_Base::RetargetCurrentTarget()
 
 void ATurret_Base::Attact_SpawnProjectile()
 {
-	// 이거는 아닌 듯
-	/*
-	FHitResult hitInfo;
-	FVector StartLocation = AttackStartPointComp->GetComponentLocation();
-	FVector EndLocation = CurrentTarget->GetActorLocation();
-
-	GetWorld()->LineTraceSingleByChannel(hitInfo, StartLocation, EndLocation, ECC_Visibility);
-	*/
-
 
 	// 발사체를 스폰해야 함 - 공격 자체는 발사체가 타겟을 따라가는 방식으로 이루어질 것
 	AProjectile_Turret* NewProjectile = GetWorld()->SpawnActor<AProjectile_Turret>(ProjectileFactory, AttackStartPointComp->GetComponentTransform());
@@ -288,19 +297,35 @@ void ATurret_Base::Attact_SpawnProjectile()
 	//UE_LOG(LogTemp, Warning, TEXT("Spawn Attack"));
 
 	if (NewProjectile) {
+		// 발사체가 해당 Turret을 Owner로 삼고, 해당 클래스에서 사용할 수 있도록 함 
 		NewProjectile->SetOwner(this);
-
+		NewProjectile->OwnerSetting();
 		//UE_LOG(LogTemp, Warning, TEXT("NewProjectile : %s"), *NewProjectile->GetName());
 
-		NewProjectile->OwnerSetting();
-
+		// 발사체의 공격 대상 타겟팅
 		NewProjectile->AttackTargeting();
 
 	}
 
 }
 
+void ATurret_Base::Die()
+{
+	// 타워의 Mesh가 땅 밑으로 들어가는 연출
 
+	FVector CurrentLoc = MeshComp->GetComponentLocation();
+	FVector DeathLoc = FVector(0, 0, -650);
+
+	// 보간 비율 (0.0은 시작 위치, 1.0은 목표 위치)
+	float LerpAlpha = 0.0001f; // 원하는 비율로 조절
+
+	// 보간된 위치 계산
+	FVector LerpedLocation = FMath::Lerp(CurrentLoc, DeathLoc, LerpAlpha);
+
+	// 액터의 위치를 보간된 위치로 설정
+	MeshComp->SetRelativeLocation(LerpedLocation);
+
+}
 
 /*
 

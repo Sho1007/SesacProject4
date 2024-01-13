@@ -64,6 +64,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AProjectile_Turret> ProjectileFactory;
 
-
-
+public: // 인터페이스 함수
+	// 포탑이 파괴되었을 때 호출
+	void Die() override;
 };
+
+
