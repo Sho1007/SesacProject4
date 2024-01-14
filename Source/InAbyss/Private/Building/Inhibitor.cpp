@@ -4,6 +4,7 @@
 #include "Building/Inhibitor.h"
 #include "Components/CapsuleComponent.h"
 #include "Component/StateComponentBase.h"
+#include "AnimInstance/InhibitorAnimInstance.h"
 
 AInhibitor::AInhibitor()
 {
@@ -17,6 +18,10 @@ void AInhibitor::BeginPlay()
 	Super::BeginPlay();
 
 	InhibitorState = EInhibitorState::IDLE;
+
+	InhibitorAnimInstance = Cast<UInhibitorAnimInstance>(MeshComp->GetAnimInstance());
+	check(InhibitorAnimInstance);
+
 }
 
 EInhibitorState AInhibitor::GetInhibitorState() const
@@ -49,6 +54,8 @@ void AInhibitor::ReBuild()
 
 	// 억제기 체력을 풀로 채워줌
 	//CurrentHealthPoiont_Building = MaxHealthPoiont_Building;
+	
+	//StateComponent_Building->
 
 	// 억제기 부활 애니메이션
 
@@ -82,6 +89,7 @@ void AInhibitor::Die()
 
 	// 억제기 재생 타이머 함수 호출
 	ReBuildTimer();
+
 
 }
 

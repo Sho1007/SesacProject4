@@ -40,7 +40,7 @@ void ATurret_Base::Tick(float DeltaTime)
 
 	if (TurretState == ETurretState::Destroy) {
 
-		if (MeshComp->GetRelativeLocation().Z >= FVector(0, 0, -650).Z) {
+		if (MeshComp->GetRelativeLocation().Z >= FVector(0, 0, -440).Z) {
 
 			MeshComp->SetRelativeLocation(MeshComp->GetRelativeLocation() - FVector(0,0,10));
 		}
@@ -143,7 +143,7 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	*/
 
 	// CurrentTarget가 없는 경우, 배열의 0번 인덱스 = 가장 먼저 접근한 액터를 CurrentTarget에 저장 -> 공격대상으로 삼음
-	if (CurrentTarget == nullptr) {
+	if (CurrentTarget == nullptr && TurretState != ETurretState::Destroy) {
 
 		CurrentTarget = DetectTargets_Test[0];
 
@@ -365,7 +365,7 @@ void ATurret_Base::Die()
 	// 포탑의 체력이 0 이하이면
 	
 	// 모든 콜리전 NoCollision
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	DetectCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// 공격 대상을 모두 제거

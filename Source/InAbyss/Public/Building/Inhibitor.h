@@ -54,5 +54,10 @@ public: // 인터페이스 함수
 	// 피격시 체력이 0 이하일 때 호출
 	void Die() override;
 
+public: // 애니메이션
+	UPROPERTY()
+	class UInhibitorAnimInstance* InhibitorAnimInstance;
+	
+
 };
 
