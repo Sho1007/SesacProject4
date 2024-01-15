@@ -86,8 +86,8 @@ void ATurret_Base::Tick(float DeltaTime)
 
 
 	// Test ===================================================
-	
-	
+
+
 	if (CurrentTarget == nullptr && DetectTargets_SuperOrCanon.Num() > 0) {
 		RetargetCurrentTarget();
 
@@ -131,7 +131,7 @@ void ATurret_Base::Tick(float DeltaTime)
 	}
 	else // 공격대상이 없으면 시간 초기화
 	{
-		BuildingState= EBuildingState::IDLE;
+		BuildingState = EBuildingState::IDLE;
 
 		CurrentTIme = 0.f;
 	}
@@ -185,7 +185,6 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	// 범위에 들어온 대상을 공격대상 배열에 넣음
 	//DetectTargets_Test.Add(OtherActor);
 
-
 	/* &&&&&&&&&&&&&&&&&로그
 	// 배열의 인덱스 값을 출력하는 로그
 	for (AActor* Actor : DetectTargets_Test)
@@ -197,7 +196,6 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 		}
 	}
 	*/
-
 
 	/*
 	// CurrentTarget가 없는 경우, 배열의 0번 인덱스 = 가장 먼저 접근한 액터를 CurrentTarget에 저장 -> 공격대상으로 삼음
@@ -256,23 +254,54 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	*/
 
-	if (OtherActor->GetName().Contains(TEXT("Cannon"))) {
-		DetectTargets_SuperOrCanon.Add(OtherActor);
+	// 상태 컴포넌트를 갖고 있고, 같은 팀이 아니라면
+	if (OtherActor->GetComponentByClass<UStateComponentBase>() && OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
+
+		if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
+			DetectTargets_SuperOrCanon.Add(OtherActor);
+
+		}
+		else if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::MINION) {
+
+			// 미니언을 전사와 마법사를 나눌지?
+			if (OtherActor->GetName().Contains(TEXT("Melee"))) {
+				DetectTargets_Warrior.Add(OtherActor);
+
+			}
+			else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
+				DetectTargets_Wizard.Add(OtherActor);
+
+			}
+		}
+		else if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
+			DetectTargets_EnemyChampion.Add(OtherActor);
+
+		}
+
+		// 잘 되기는 하는데, 위의 StateComponent로 대체함 - 이건 액터에 포함된 이름의 일부를 체크하는 것
+		/*
+		if (OtherActor->GetName().Contains(TEXT("Cannon"))) {
+			DetectTargets_SuperOrCanon.Add(OtherActor);
+
+		}
+		else if (OtherActor->GetName().Contains(TEXT("Melee"))) {
+			DetectTargets_Warrior.Add(OtherActor);
+
+		}
+		else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
+			DetectTargets_Wizard.Add(OtherActor);
+
+		}
+		else if (OtherActor->IsA<ACharacter>()) {
+			DetectTargets_EnemyChampion.Add(OtherActor);
+
+		}
+		*/
 
 	}
-	else if (OtherActor->GetName().Contains(TEXT("Melee"))) {
-		DetectTargets_Warrior.Add(OtherActor);
 
-	}
-	else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
-		DetectTargets_Wizard.Add(OtherActor);
 
-	}
-	else if (OtherActor->IsA<ACharacter>()) {
-		DetectTargets_EnemyChampion.Add(OtherActor);
 
-	}
-	
 
 	if (CurrentTarget == nullptr) {
 
@@ -346,23 +375,57 @@ void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 	// test ==================================================================================================
 
 
+	// 상태 컴포넌트를 갖고 있고, 같은 팀이 아니라면
+	if (OtherActor->GetComponentByClass<UStateComponentBase>() && OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
 
-	if (OtherActor->GetName().Contains(TEXT("Cannon"))) {
-		DetectTargets_SuperOrCanon.Remove(OtherActor);
+		if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
+			DetectTargets_SuperOrCanon.Remove(OtherActor);
+
+		}
+		else if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::MINION) {
+
+			// 미니언을 전사와 마법사를 나눌지?
+			if (OtherActor->GetName().Contains(TEXT("Melee"))) {
+				DetectTargets_Warrior.Remove(OtherActor);
+
+			}
+			else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
+				DetectTargets_Wizard.Remove(OtherActor);
+
+			}
+		}
+		else if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
+			DetectTargets_EnemyChampion.Remove(OtherActor);
+
+		}
+
+
+
+		/*
+		if (OtherActor->GetName().Contains(TEXT("Cannon"))) {
+			DetectTargets_SuperOrCanon.Remove(OtherActor);
+
+		}
+		else if (OtherActor->GetName().Contains(TEXT("Melee"))) {
+			DetectTargets_Warrior.Remove(OtherActor);
+
+		}
+		else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
+			DetectTargets_Wizard.Remove(OtherActor);
+
+		}
+		else if (OtherActor->IsA<ACharacter>()) {
+			DetectTargets_EnemyChampion.Remove(OtherActor);
+
+		}
+		*/
 
 	}
-	else if (OtherActor->GetName().Contains(TEXT("Melee"))) {
-		DetectTargets_Warrior.Remove(OtherActor);
 
-	}
-	else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
-		DetectTargets_Wizard.Remove(OtherActor);
 
-	}
-	else if (OtherActor->IsA<ACharacter>()) {
-		DetectTargets_EnemyChampion.Remove(OtherActor);
 
-	}
+
+
 
 	// 이탈 대상이 최우선 타겟이라면, 이를 공석으로 함
 	if (TopPriorityTarget && TopPriorityTarget == OtherActor) {
@@ -584,7 +647,7 @@ void ATurret_Base::Die()
 
 
 	// 포탑 상태 Destroy로 변경
-	BuildingState= EBuildingState::Destroy;
+	BuildingState = EBuildingState::Destroy;
 
 }
 

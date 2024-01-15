@@ -28,6 +28,7 @@ ABuilding_Base::ABuilding_Base()
 
 
 	StateComponent_Building = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponentBase_Building"));
+	StateComponent_Building->SetObjectType(EObjectType::BUILDING);
 
 }
 
