@@ -7,6 +7,14 @@
 #include "Interface/StateInterface.h"
 #include "Building_Base.generated.h"
 
+UENUM()
+enum class EBuildingState : uint8
+{
+	NONE,
+	IDLE,
+	Attack,
+	Destroy
+};
 
 UCLASS()
 class INABYSS_API ABuilding_Base : public AActor, public IStateInterface
@@ -34,17 +42,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USkeletalMeshComponent* MeshComp;
 
-
 public: // 다른 클래스의 액터 컴포넌트를 붙인 부분
 	// 상태 컴포넌트 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "StateComponents")
 	class UStateComponentBase* StateComponent_Building;
 	
-	/*
-public:
-	float CurrentHealthPoiont_Building;
-	float MaxHealthPoiont_Building;
-	*/
+public:	// 상태 관련 설정
+	EBuildingState GetBuildingState() const;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "BuildingState")
+	EBuildingState BuildingState;
+
+public: // 앞의 건물이 파괴되어야 자신을 파괴할 수 있도록 해야 함. 그 전까지는 무적상태
+	UPROPERTY(EditInstanceOnly)
+	TArray<ABuilding_Base*> PreBuilding;
+
+	// 피격 가능 기능
+	void ActivateHit();
 
 public: // 인터페이스 가상함수 상속 부분
 	//  피격시 호출될 함수

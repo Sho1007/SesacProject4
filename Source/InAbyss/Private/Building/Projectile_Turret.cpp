@@ -66,22 +66,31 @@ void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 	// 충돌한 액터가 AttackTarget인 경우에만 함수를 호출 -  이외의 액터들은 무시할 수 있게 됨
 	if (OtherActor == AttackTarget) {
 
-		/*
+
+
+
+		
 		// Test =================================================================
 		// 타겟이 미니언인 경우
 		if (OtherActor->IsA<AMinionBase>()) {
 			class AMinionBase* TargetMinion = Cast<AMinionBase>(OtherActor);
+			// 데미지를 주는 함수 호출
 			TargetMinion->TestDamageFunction();
 
 		}
+		// 현재 챔피언은 클래스가 없음
+		// 챔피언한테도 데미지 주도록 코드 추가 필요 ****************************
+		 
+		
 		// Test =================================================================
-		*/
+		
+		Destroy();
 
-		Attack_OverlapTarget();
+
+		//Attack_OverlapTarget();
 
 	}
 
-	
 }
 
 void AProjectile_Turret::OwnerSetting()
@@ -119,7 +128,6 @@ void AProjectile_Turret::AttackTargeting()
 void AProjectile_Turret::Attack_OverlapTarget()
 {
 	// AttackTarget에게 데미지를 주어야 함
-
 
 	// 자신을 파괴
 	Destroy();

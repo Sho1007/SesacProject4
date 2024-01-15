@@ -7,15 +7,6 @@
 #include "Turret_Base.generated.h"
 
 
-UENUM()
-enum class ETurretState : uint8
-{
-	NONE,
-	IDLE,
-	ATTACK,
-	Destroy
-};
-
 /**
  * 
  */
@@ -37,12 +28,6 @@ public:
 	void NotifyActorBeginOverlap(AActor* OtherActor) override;
 	void NotifyActorEndOverlap(AActor* OtherActor) override;
 
-public: // 상태 관련 설정
-	ETurretState GetTurretState() const;
-	
-	UPROPERTY(VisibleInstanceOnly, Category = "TurretState")
-	ETurretState TurretState;
-
 public:
 	// 포탑 주변의 챔피온 및 미니언을 감지할 Collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -55,15 +40,27 @@ public:
 public: // 감지기능
 
 	// 감지된 대상들을 저장할 배열
-	TArray <AActor*> DetectTargets_Test; // 나중에 필요없음
+	// 임시---------------
+	//TArray <AActor*> DetectTargets_Test; // 나중에 필요없음
 
+	//TArray <AActor*> DetectTargets_Chracter_Test; // 적 챔피언 저장할 배열
+	//TArray <AActor*> DetectTargets_MinionBase_Test; // 적 챔피언 저장할 배열
+	// 임시---------------
+
+
+	UPROPERTY(VisibleAnywhere)
 	TArray <AActor*> DetectTargets_EnemyChampion; // 적 챔피언 저장할 배열
+	UPROPERTY(VisibleAnywhere)
 	TArray <AActor*> DetectTargets_SuperOrCanon; // 슈퍼 혹은 공성 미니언 저장할 배열
+	UPROPERTY(VisibleAnywhere)
 	TArray <AActor*> DetectTargets_Warrior; // 전사 미니언 저장할 배열
+	UPROPERTY(VisibleAnywhere)
 	TArray <AActor*> DetectTargets_Wizard; // 마법사 미니언 저장할 배열
 
 	// 공격할 대상을 지정할 변수
+	UPROPERTY(VisibleAnywhere)
 	class AActor* CurrentTarget; // 공격 받을 타겟 변수
+	UPROPERTY(VisibleAnywhere)
 	class AActor* TopPriorityTarget; // CurrentTarget보다 먼저 공격받을 타겟 변수 // 나중에 클래스를 챔피언으로 변경
 
 public:
@@ -92,6 +89,8 @@ public: // 인터페이스 함수
 
 	// 피격시 체력이 0 이하일 때 호출
 	void Die() override;
+
+
 };
 
 

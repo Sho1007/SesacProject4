@@ -9,7 +9,7 @@
 // Sets default values
 ABuilding_Base::ABuilding_Base()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 건축물 콜리전
@@ -17,6 +17,10 @@ ABuilding_Base::ABuilding_Base()
 	SetRootComponent(CollisionComp);
 	CollisionComp->SetCapsuleHalfHeight(500);
 	CollisionComp->SetCapsuleRadius(130);
+
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
 
 	// 건축물 외형 Mesh
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
@@ -32,6 +36,10 @@ void ABuilding_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (PreBuilding.Num() == 0) {
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	}
 }
 
 // Called every frame
@@ -39,9 +47,46 @@ void ABuilding_Base::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/*
+	if (CollisionComp->GetCollisionEnabled() != ECollisionEnabled::NoCollision) {
+
+		for (ABuilding_Base* Building : PreBuilding) {
+	
+			if (Building->BuildingState != EBuildingState::Destroy) {
+			
+				UE_LOG(LogTemp, Warning, TEXT("You can't1"));
+
+
+				break;
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("3"));
+
+		}
+
+	}
+	*/
+	
+
+
+	if (CollisionComp->GetCollisionEnabled() != ECollisionEnabled::QueryOnly) {
+		ActivateHit();
+
+	}
+}
+
+EBuildingState ABuilding_Base::GetBuildingState() const
+{
+	return EBuildingState();
 }
 
 // 인터페이스 함수 - 자식 클래스에서 각자 재정의
 void ABuilding_Base::Damaged() {}
 void ABuilding_Base::Die() {}
 
+void ABuilding_Base::ActivateHit()
+{
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	//UE_LOG(LogTemp, Warning, TEXT("You can2"));
+}

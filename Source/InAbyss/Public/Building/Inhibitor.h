@@ -6,13 +6,6 @@
 #include "Building/Building_Base.h"
 #include "Inhibitor.generated.h"
 
-UENUM()
-enum class EInhibitorState : uint8
-{
-	NONE,
-	IDLE,
-	Destroy
-};
 
 /**
  * 
@@ -29,12 +22,6 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public: // 상태 관련 설정
-	EInhibitorState   GetInhibitorState() const;
-	
-	UPROPERTY(VisibleInstanceOnly, Category = "InhibitorState")
-	EInhibitorState   InhibitorState;
-
 public:
 	// 피격시 호출할 함수 = 데미지를 입을 때 호출
 	UFUNCTION(CallInEditor)
@@ -42,8 +29,10 @@ public:
 
 public:	// 
 	// 건물 파괴시 호출할 타이머 함수
+	UFUNCTION(CallInEditor)
 	void ReBuildTimer();
 
+	UFUNCTION(CallInEditor)
 	// 타이머가 완료되면 호출할 함수 
 	void ReBuild();
 
