@@ -7,6 +7,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Building/Turret_Base.h"
 #include "Enemy/MinionBase.h"
+#include "Component/StateComponentBase.h"
 
 // Sets default values
 AProjectile_Turret::AProjectile_Turret()
@@ -60,16 +61,21 @@ void AProjectile_Turret::Tick(float DeltaTime)
 
 void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	// 부딪힌 액터의 클래스별로 기능 호출
 	
 	// 공격기능
 	// 충돌한 액터가 AttackTarget인 경우에만 함수를 호출 -  이외의 액터들은 무시할 수 있게 됨
 	if (OtherActor == AttackTarget) {
 
+		// 충돌한 액터에 StateComponent가 있다면 - 액터의 종류 무관
+		if (UStateComponentBase* TargetStateComponent = OtherActor->GetComponentByClass<UStateComponentBase>())
+		{
+			// 데미지 주는 기능 - ApplyDamage(물공 데미지, 마공 데미지 )
+			TargetStateComponent->ApplyDamage();
 
+			Destroy();
+		}
 
-
-		
+		/*
 		// Test =================================================================
 		// 타겟이 미니언인 경우
 		if (OtherActor->IsA<AMinionBase>()) {
@@ -88,7 +94,7 @@ void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 
 
 		//Attack_OverlapTarget();
-
+		*/
 	}
 
 }
