@@ -7,9 +7,9 @@
 #include "Interface/StateInterface.h"
 #include "MinionBase.generated.h"
 
+class UWidgetComponent;
 class USphereComponent;
 class UStateComponentBase;
-
 UENUM()
 enum class EEnemyState : uint8
 {
@@ -39,10 +39,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	EEnemyState GetEnemyState() const;
 
 	UFUNCTION()
 	void OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
+	void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	void Separation();
 	void Alignment();
@@ -55,6 +59,16 @@ public:
 	virtual void Damaged() override;
 	virtual void Die() override;
 
+	virtual void Attack();
+
+	void SetTarget(AActor* NewTarget, int32 NewPriority = -1);
+
+protected:
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_PlayAttackMontage();
+
+	void FindTarget();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")
 	USphereComponent* SphereComponent;
@@ -65,7 +79,12 @@ protected:
 	UPROPERTY()
 	class UMinionAnimInstance* AnimInstance;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "State")
+	// Widget
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* HealthBarWidgetComponent; 
+
+	// State
+	UPROPERTY(VisibleInstanceOnly, Replicated, Category = "State")
 	EEnemyState EnemyState;
 
 	UPROPERTY(EditDefaultsOnly, Category = "State")
@@ -76,10 +95,17 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category = "Target")
 	AActor* Target;
 	UPROPERTY(VisibleInstanceOnly, Category = "Target")
+	UStateComponentBase* TargetStateComponent;
+	UPROPERTY(VisibleInstanceOnly, Category = "Target")
+	int32 TargetPriority;
+	UPROPERTY(VisibleInstanceOnly, Category = "Target")
 	float TargetDistance;
 	
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	float AttackDistance = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = "FindTarget")
+	float FindTargetDistance = 200.f;
 
 	UPROPERTY(EditAnywhere, Category = "Move")
 	float MoveSpeed = 200.f;
@@ -87,4 +113,6 @@ protected:
 private:
 	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
 	TArray<AActor*> NeighborActorArray;
+	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
+	TArray<AActor*> TargetActorArray;
 };

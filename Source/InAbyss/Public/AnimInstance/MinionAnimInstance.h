@@ -33,4 +33,6 @@ protected:
 
 	UFUNCTION()
 	void AnimNotify_OnDeathFinished();
+	UFUNCTION()
+	void AnimNotify_Attack();
 };

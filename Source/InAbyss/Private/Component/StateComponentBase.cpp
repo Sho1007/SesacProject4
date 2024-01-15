@@ -6,6 +6,7 @@
 #include <Net/UnrealNetwork.h>
 
 #include "Interface/StateInterface.h"
+#include "Widget/InGame/HealthBarWidgetBase.h"
 
 // Sets default values for this component's properties
 UStateComponentBase::UStateComponentBase()
@@ -25,7 +26,7 @@ void UStateComponentBase::BeginPlay()
 
 	// ...
 
-	Health = MaxHealth;	
+	Health = MaxHealth;
 }
 
 // Called every frame
@@ -48,9 +49,49 @@ EFactionType UStateComponentBase::GetFactionType() const
 	return FactionType;
 }
 
+EObjectType UStateComponentBase::GetObjectType() const
+{
+	return ObjectType;
+}
+
+float UStateComponentBase::GetHPPercent() const
+{
+	return Health / MaxHealth;
+}
+
+float UStateComponentBase::GetAbilityPower() const
+{
+	return AbilityPower;
+}
+
+float UStateComponentBase::GetAttackDamage() const
+{
+	return AttackDamage;
+}
+
+bool UStateComponentBase::IsDead() const
+{
+	return Health <= 0.f;
+}
+
 void UStateComponentBase::SetFactionType(EFactionType NewFactionType)
 {
 	FactionType = NewFactionType;
+}
+
+void UStateComponentBase::SetObjectType(EObjectType NewObjectType)
+{
+	ObjectType = NewObjectType;
+}
+
+void UStateComponentBase::SetAbilityPower(float NewAbilityPower)
+{
+	AbilityPower = NewAbilityPower;
+}
+
+void UStateComponentBase::SetAttackDamage(float NewAttackDamage)
+{
+	AttackDamage = NewAttackDamage;
 }
 
 void UStateComponentBase::ApplyDamage(float ADDamage, float APDamage)
@@ -76,4 +117,14 @@ void UStateComponentBase::OnRep_Health()
 			Interface->Die();
 		}
 	}
+
+	OnHPChanged.Broadcast(Health / MaxHealth);
+}
+
+void UStateComponentBase::OnRep_AttackDamage()
+{
+}
+
+void UStateComponentBase::OnRep_AbilityPower()
+{
 }
