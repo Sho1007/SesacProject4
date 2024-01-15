@@ -17,16 +17,11 @@ void AInhibitor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InhibitorState = EInhibitorState::IDLE;
+	BuildingState = EBuildingState::IDLE;
 
 	InhibitorAnimInstance = Cast<UInhibitorAnimInstance>(MeshComp->GetAnimInstance());
 	check(InhibitorAnimInstance);
 
-}
-
-EInhibitorState AInhibitor::GetInhibitorState() const
-{
-	return EInhibitorState();
 }
 
 void AInhibitor::TakeDamage_Inhibitor()
@@ -44,13 +39,14 @@ void AInhibitor::ReBuildTimer()
 	FTimerHandle RebuildTimerhandle;
 
 	// 5분의 타이머를 진행하고, 타이머가 종료되면 억제기의 체력을 다시 최대로 만든다. 
+	InhibitorAnimInstance->bIsDeath = true;
 	GetWorldTimerManager().SetTimer(RebuildTimerhandle, this, &AInhibitor::ReBuild, 300, false); 
 
 }
 
 void AInhibitor::ReBuild()
 {
-	InhibitorState = EInhibitorState::IDLE;
+	BuildingState = EBuildingState::IDLE;
 
 	// 억제기 체력을 풀로 채워줌
 	//CurrentHealthPoiont_Building = MaxHealthPoiont_Building;
@@ -83,13 +79,12 @@ void AInhibitor::Die()
 
 
 	// 억제기 상태를 Destroy로 변경
-	InhibitorState = EInhibitorState::Destroy;
+	BuildingState = EBuildingState::Destroy;
 
 
 
 	// 억제기 재생 타이머 함수 호출
 	ReBuildTimer();
-
 
 }
 

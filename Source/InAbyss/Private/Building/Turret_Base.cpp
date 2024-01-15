@@ -7,6 +7,8 @@
 #include "Building/Projectile_Turret.h"
 #include "Component/StateComponentBase.h"
 #include "Components/CapsuleComponent.h"
+#include "Enemy/MinionBase.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/Character.h>
 
 ATurret_Base::ATurret_Base()
 {
@@ -30,19 +32,19 @@ void ATurret_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TurretState = ETurretState::IDLE;
-	
+	BuildingState = EBuildingState::IDLE;
+
 }
 
 void ATurret_Base::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (TurretState == ETurretState::Destroy) {
+	if (BuildingState == EBuildingState::Destroy) {
 
 		if (MeshComp->GetRelativeLocation().Z >= FVector(0, 0, -440).Z) {
 
-			MeshComp->SetRelativeLocation(MeshComp->GetRelativeLocation() - FVector(0,0,10));
+			MeshComp->SetRelativeLocation(MeshComp->GetRelativeLocation() - FVector(0, 0, 10));
 		}
 
 		return;
@@ -61,14 +63,47 @@ void ATurret_Base::Tick(float DeltaTime)
 
 	// Test ===================================================
 	// CurrentTarget이 없고, 충돌 중인 액터가 있는 경우
-	if (CurrentTarget == nullptr && DetectTargets_Test.Num() > 0 ) { 
-	//  이후 조건 미니언, 챔피언 배열들 추가해서 수정 필요
+	/*
+	if (CurrentTarget == nullptr && DetectTargets_Test.Num() > 0) {
+		//  이후 조건 미니언, 챔피언 배열들 추가해서 수정 필요
 
-		// 공격대상 재지정 함수 호출
+			// 공격대상 재지정 함수 호출
 		RetargetCurrentTarget();
 
 	}
+	*/
+
+	/*
+	if (CurrentTarget == nullptr && DetectTargets_MinionBase_Test.Num() > 0) {
+		RetargetCurrentTarget();
+
+	}
+	else if (CurrentTarget == nullptr && DetectTargets_Chracter_Test.Num() > 0) {
+		RetargetCurrentTarget();
+
+	}
+	*/
+
+
 	// Test ===================================================
+	
+	
+	if (CurrentTarget == nullptr && DetectTargets_SuperOrCanon.Num() > 0) {
+		RetargetCurrentTarget();
+
+	}
+	else if (CurrentTarget == nullptr && DetectTargets_Warrior.Num() > 0) {
+		RetargetCurrentTarget();
+
+	}
+	else if (CurrentTarget == nullptr && DetectTargets_Wizard.Num() > 0) {
+		RetargetCurrentTarget();
+
+	}
+	else if (CurrentTarget == nullptr && DetectTargets_EnemyChampion.Num() > 0) {
+		RetargetCurrentTarget();
+
+	}
 
 
 
@@ -79,8 +114,8 @@ void ATurret_Base::Tick(float DeltaTime)
 	// 만약 공격대상이 지정되어 있다면
 	if (CurrentTarget) {
 
-		TurretState = ETurretState::ATTACK;
-		
+		BuildingState = EBuildingState::Attack;
+
 		// 시간을 카운트 시작
 		CurrentTIme += DeltaTime;
 
@@ -96,7 +131,7 @@ void ATurret_Base::Tick(float DeltaTime)
 	}
 	else // 공격대상이 없으면 시간 초기화
 	{
-		TurretState = ETurretState::IDLE;
+		BuildingState= EBuildingState::IDLE;
 
 		CurrentTIme = 0.f;
 	}
@@ -119,16 +154,37 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
 
+	if (BuildingState == EBuildingState::Destroy) {
+		return;
+	}
+
+
 	// test ==================================================================================================
 	// 포탑에 접근한 액터를 배열에 저장 -> 충돌한 액터를 배열에 저장 
 
+	/*
 	// 임시 : 발사체는 배열에 저장하지 않음 - 이건 나중에 배열을 미니언, 챔피언만 인식하도록 하면 필요 없음
 	if (OtherActor->IsA<AProjectile_Turret>()) { // 임시
 		return;
 	}
 
+	if (OtherActor->IsA<AMinionBase>()) {
+		DetectTargets_MinionBase_Test.Add(OtherActor);
+
+	}
+	else if (OtherActor->IsA<ACharacter>()) { // 캐릭터를 감지한 경우
+		DetectTargets_Chracter_Test.Add(OtherActor);
+
+	}
+	else {
+		// 감지된 액터가 아무 조건에 해당하지 않을 경우 함수 종료
+		return;
+	}
+	*/
+
 	// 범위에 들어온 대상을 공격대상 배열에 넣음
-	DetectTargets_Test.Add(OtherActor);
+	//DetectTargets_Test.Add(OtherActor);
+
 
 	/* &&&&&&&&&&&&&&&&&로그
 	// 배열의 인덱스 값을 출력하는 로그
@@ -142,19 +198,38 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	}
 	*/
 
+
+	/*
 	// CurrentTarget가 없는 경우, 배열의 0번 인덱스 = 가장 먼저 접근한 액터를 CurrentTarget에 저장 -> 공격대상으로 삼음
-	if (CurrentTarget == nullptr && TurretState != ETurretState::Destroy) {
+	if (CurrentTarget == nullptr) {
 
-		CurrentTarget = DetectTargets_Test[0];
+		if (DetectTargets_MinionBase_Test.Num() > 0) {
+			CurrentTarget = DetectTargets_MinionBase_Test[0];
+		}
+		else if (DetectTargets_Chracter_Test.Num() > 0) {
+			CurrentTarget = DetectTargets_Chracter_Test[0];
 
-		Attact_SpawnProjectile(); // 타겟이 지정되면 바로 공격
+		}
+
+
+
+
+		//CurrentTarget = DetectTargets_Test[0];
+
+
+
+		if (CurrentTarget) {
+			Attact_SpawnProjectile(); // 타겟이 지정되면 곧바로 1회 공격
+
+		}
 
 		//UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
+
 
 	}
 
 	// test ==================================================================================================
-
+	*/
 
 
 
@@ -162,7 +237,6 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	// 포탑의 콜리전과 충돌하는 액터를 배열에 저장한다. 
 	// + 감지된 액터가 적인 경우에만 저장하도록 해야 함*************************
 	/*
-
 	if (OtherActor->IsA<클래스 이름>()) {
 		DetectTargets_SuperOrCanon.Add(OtherActor);
 
@@ -180,10 +254,52 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	}
 
-
-
 	*/
 
+	if (OtherActor->GetName().Contains(TEXT("Cannon"))) {
+		DetectTargets_SuperOrCanon.Add(OtherActor);
+
+	}
+	else if (OtherActor->GetName().Contains(TEXT("Melee"))) {
+		DetectTargets_Warrior.Add(OtherActor);
+
+	}
+	else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
+		DetectTargets_Wizard.Add(OtherActor);
+
+	}
+	else if (OtherActor->IsA<ACharacter>()) {
+		DetectTargets_EnemyChampion.Add(OtherActor);
+
+	}
+	
+
+	if (CurrentTarget == nullptr) {
+
+		if (DetectTargets_SuperOrCanon.Num() > 0) {
+			CurrentTarget = DetectTargets_SuperOrCanon[0];
+		}
+		else if (DetectTargets_Warrior.Num() > 0) {
+			CurrentTarget = DetectTargets_Warrior[0];
+
+		}
+		else if (DetectTargets_Wizard.Num() > 0) {
+			CurrentTarget = DetectTargets_Wizard[0];
+
+		}
+		else if (DetectTargets_EnemyChampion.Num() > 0) {
+			CurrentTarget = DetectTargets_EnemyChampion[0];
+
+		}
+
+		if (CurrentTarget) {
+			Attact_SpawnProjectile(); // 타겟이 지정되면 곧바로 1회 공격
+
+		}
+
+		//UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
+
+	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("BiginOverlap-----------------------------------------------------"));
 }
@@ -197,7 +313,7 @@ void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 	// test ==================================================================================================
 
 	// 포탑의 범위에서 벗어난 액터는 배열에서 제거 -> 충돌이 해제된 액터를 배열에서 제거한다. 
-	DetectTargets_Test.Remove(OtherActor); // 사실상 기능으로는 이 코드만 필요함
+	//DetectTargets_Test.Remove(OtherActor); // 사실상 기능으로는 이 코드만 필요함
 
 	/*
 	// 포탑에 접근 중인 액터가 남아있는지 검사하는 로그
@@ -216,24 +332,48 @@ void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 		}
 	}
 	*/
+
+	/*
+	if (OtherActor->IsA<AMinionBase>()) {
+		DetectTargets_MinionBase_Test.Remove(OtherActor);
+
+	}
+	else if (OtherActor->IsA<ACharacter>()) { // 캐릭터를 감지한 경우
+		DetectTargets_Chracter_Test.Remove(OtherActor);
+
+	}
+	*/
 	// test ==================================================================================================
 
 
 
+	if (OtherActor->GetName().Contains(TEXT("Cannon"))) {
+		DetectTargets_SuperOrCanon.Remove(OtherActor);
 
+	}
+	else if (OtherActor->GetName().Contains(TEXT("Melee"))) {
+		DetectTargets_Warrior.Remove(OtherActor);
 
+	}
+	else if (OtherActor->GetName().Contains(TEXT("Caster"))) {
+		DetectTargets_Wizard.Remove(OtherActor);
 
+	}
+	else if (OtherActor->IsA<ACharacter>()) {
+		DetectTargets_EnemyChampion.Remove(OtherActor);
+
+	}
 
 	// 이탈 대상이 최우선 타겟이라면, 이를 공석으로 함
-	if (TopPriorityTarget  && TopPriorityTarget == OtherActor) {
-	
+	if (TopPriorityTarget && TopPriorityTarget == OtherActor) {
+
 		TopPriorityTarget = nullptr;
 
 	}
 
 	// 공격타겟이 이탈한 경우 - CurrentTarget이 포탑의 범위에서 벗어난 경우
 	if (CurrentTarget && CurrentTarget == OtherActor) {
-		
+
 		CurrentTarget = nullptr;
 
 	}
@@ -262,11 +402,6 @@ void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 
 }
 
-ETurretState ATurret_Base::GetTurretState() const
-{
-	return ETurretState();
-}
-
 void ATurret_Base::RetargetCurrentTarget()
 {
 	// 본래 공격받던 타겟이 사라졌을 경우 호출하도록 해야 한다. - CurrentTarget이 nullptr인 경우
@@ -282,12 +417,13 @@ void ATurret_Base::RetargetCurrentTarget()
 
 	// test ==================================================================================================
 	// 남아있는 배열이 있다면, 0번 인덱스를 공격 대상으로 함 
+	/*
 	if (DetectTargets_Test.Num() > 0) {
 		CurrentTarget = DetectTargets_Test[0];
 
 		return;
 
-		/*
+
 		// 타겟을 출력하는 로그
 		if (CurrentTarget) {
 			UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
@@ -297,10 +433,46 @@ void ATurret_Base::RetargetCurrentTarget()
 			UE_LOG(LogTemp, Warning, TEXT("No CurrentTarget"));
 
 		}
-		*/
+
 	}
+	*/
+
+	/*
+	if (DetectTargets_MinionBase_Test.Num() > 0) {
+		CurrentTarget = DetectTargets_MinionBase_Test[0];
+
+		return;
+
+	}
+	else if (DetectTargets_Chracter_Test.Num() > 0) {
+		CurrentTarget = DetectTargets_Chracter_Test[0];
+
+		return;
+	}
+	*/
 
 	// test ==================================================================================================
+
+	if (DetectTargets_SuperOrCanon.Num() > 0) {
+		CurrentTarget = DetectTargets_SuperOrCanon[0];
+
+		return;
+	}
+	else if (DetectTargets_Warrior.Num() > 0) {
+		CurrentTarget = DetectTargets_Warrior[0];
+
+		return;
+	}
+	else if (DetectTargets_Wizard.Num() > 0) {
+		CurrentTarget = DetectTargets_Wizard[0];
+
+		return;
+	}
+	else if (DetectTargets_EnemyChampion.Num() > 0) {
+		CurrentTarget = DetectTargets_EnemyChampion[0];
+
+		return;
+	}
 
 
 
@@ -348,7 +520,7 @@ void ATurret_Base::Attact_SpawnProjectile()
 void ATurret_Base::TakeDamage_Turret()
 {
 	StateComponent_Building->ApplyDamage(10.f); // 임시 10 - 타격 대상의 공격력이 들어가야 할 듯
-	
+
 	// 실행 순서
 		// TakeDamage_Turret() -> StateComponent_Building->ApplyDamage() -> OnRep_Health() -> Damaged() / Die()
 }
@@ -363,7 +535,7 @@ void ATurret_Base::Damaged()
 void ATurret_Base::Die()
 {
 	// 포탑의 체력이 0 이하이면
-	
+
 	// 모든 콜리전 NoCollision
 	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	DetectCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -373,20 +545,49 @@ void ATurret_Base::Die()
 		TopPriorityTarget = nullptr;
 	}
 	if (CurrentTarget) {
-		CurrentTarget =nullptr;
+		CurrentTarget = nullptr;
 	}
 
+
+	// test ------------------------------------------------------------------
 	// 임시 : 감지배열도 모두 null로 변경 
+	/*
 	if (DetectTargets_Test.Num() > 0) {
 		DetectTargets_Test.Reset();
 
 	}
+	*/
+
+	/*
+	if (DetectTargets_MinionBase_Test.Num() > 0) {
+		DetectTargets_MinionBase_Test.Reset();
+	}
+	if (DetectTargets_Chracter_Test.Num() > 0) {
+		DetectTargets_Chracter_Test.Reset();
+	}
+	*/
+
+	// test ------------------------------------------------------------------
+
+	if (DetectTargets_SuperOrCanon.Num() > 0) {
+		DetectTargets_SuperOrCanon.Reset();
+	}
+	if (DetectTargets_Warrior.Num() > 0) {
+		DetectTargets_Warrior.Reset();
+	}
+	if (DetectTargets_Wizard.Num() > 0) {
+		DetectTargets_Wizard.Reset();
+	}
+	if (DetectTargets_EnemyChampion.Num() > 0) {
+		DetectTargets_EnemyChampion.Reset();
+	}
 
 
 	// 포탑 상태 Destroy로 변경
-	TurretState = ETurretState::Destroy;
-	
+	BuildingState= EBuildingState::Destroy;
+
 }
+
 
 /*
 

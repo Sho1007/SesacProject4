@@ -7,14 +7,6 @@
 #include "Nexus.generated.h"
 
 
-UENUM()
-enum class ENexusState : uint8
-{
-	NONE,
-	IDLE,
-	Destroy
-};
-
 /**
  * 
  */
@@ -30,11 +22,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public: // 상태 관련 설정
-	ENexusState  GetNexusState() const;
-	
-	UPROPERTY(VisibleInstanceOnly, Category = "NexusState")
-	ENexusState  NexusState;
+public: // 건축물의 순서를 정하기 위한 기능
+	// 모든 레벨의 건축물을 저장하는 기능
+	UPROPERTY(VisibleAnywhere)
+	TArray <AActor*> AllBuilding;
+
+	void ScanBuildingInLevel();
+
 
 public:
 	// 피격시 호출할 함수 = 데미지를 입을 때 호출
