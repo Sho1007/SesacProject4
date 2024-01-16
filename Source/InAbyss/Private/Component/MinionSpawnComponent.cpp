@@ -66,3 +66,7 @@ void UMinionSpawnComponent::SpawnMinion()
 		}
 	}
 }
+
+void UMinionSpawnComponent::SpawnMinionTimerFuntion()
+{
+}
