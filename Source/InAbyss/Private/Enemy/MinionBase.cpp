@@ -8,6 +8,7 @@
 #include <Components/SphereComponent.h>
 #include <Components/WidgetComponent.h>
 
+#include "NetworkMessage.h"
 #include "AnimInstance/MinionAnimInstance.h"
 #include "Component/StateComponentBase.h"
 
@@ -240,8 +241,26 @@ void AMinionBase::Damaged()
 
 void AMinionBase::Die()
 {
-	AnimInstance->PlayDeathMontage();
-	// Todo : Object Pool
+	MultiRPC_PlayDeathMontage();
+}
+
+void AMinionBase::Activate()
+{
+	bIsActivated = true;
+	SetActorTickEnabled(true);
+	MultiRPC_Activate();
+}
+
+void AMinionBase::Deactivate()
+{
+	bIsActivated = false;
+	SetActorTickEnabled(false);
+	MultiRPC_Deactivate();
+}
+
+bool AMinionBase::IsActivated()
+{
+	return bIsActivated;
 }
 
 void AMinionBase::Attack()
@@ -260,7 +279,21 @@ void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
 		TargetStateComponent = Target->GetComponentByClass<UStateComponentBase>();
 		if (NewPriority == -1)
 		{
-			TargetPriority = TargetStateComponent->GetObjectType() == EObjectType::CHAMPION ? 7 : 6;
+			switch(TargetStateComponent->GetObjectType())
+			{
+			case EObjectType::MINION:
+				TargetPriority = 6;
+				break;
+			case EObjectType::SUPERMINION:
+				TargetPriority = 6;
+				break;
+			case EObjectType::BUILDING:
+				TargetPriority = 8;
+				break;
+			case EObjectType::CHAMPION:
+				TargetPriority = 7;
+				break;
+			}
 		}
 		else
 		{
@@ -270,12 +303,25 @@ void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
 	}
 	else
 	{
-		
 		auto IterStateComponent =  NewTarget->GetComponentByClass<UStateComponentBase>();
-		int IterPriority;
+		int IterPriority = 9;
 		if (NewPriority == -1)
 		{
-			IterPriority = IterStateComponent->GetObjectType() == EObjectType::CHAMPION ? 7 : 6; 
+			switch(IterStateComponent->GetObjectType())
+			{
+			case EObjectType::MINION:
+				IterPriority = 6;
+				break;
+			case EObjectType::SUPERMINION:
+				IterPriority = 6;
+				break;
+			case EObjectType::BUILDING:
+				IterPriority = 8;
+				break;
+			case EObjectType::CHAMPION:
+				IterPriority = 7;
+				break;
+			}
 		}
 		else
 		{
@@ -292,6 +338,27 @@ void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
 			TargetDistance = IterDistance; 
 		}
 	}
+}
+
+void AMinionBase::MultiRPC_PlayDeathMontage_Implementation()
+{
+	AnimInstance->PlayDeathMontage();
+}
+
+void AMinionBase::MultiRPC_Activate_Implementation()
+{
+	HealthBarWidgetComponent->SetVisibility(true);
+	SkeletalMeshComponent->SetVisibility(true);
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AMinionBase::MultiRPC_Deactivate_Implementation()
+{
+	HealthBarWidgetComponent->SetVisibility(false);
+	SkeletalMeshComponent->SetVisibility(false);
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AMinionBase::FindTarget()
@@ -313,6 +380,5 @@ void AMinionBase::FindTarget()
 
 void AMinionBase::MultiRPC_PlayAttackMontage_Implementation()
 {
-	// Todo : Play Attack Anim
 	AnimInstance->PlayAttackMontage();
 }

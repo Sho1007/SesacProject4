@@ -6,6 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "InGameGameState.generated.h"
 
+class ABuilding_Base;
 /**
  * 
  */
@@ -13,7 +14,4 @@ UCLASS()
 class INABYSS_API AInGameGameState : public AGameStateBase
 {
 	GENERATED_BODY()
-
-protected:
-	// UPROPERTY(VisibleInstanceOnly)
 };

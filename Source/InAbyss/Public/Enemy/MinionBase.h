@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/ObjectPoolInterface.h"
 #include "Interface/StateInterface.h"
 #include "MinionBase.generated.h"
 
@@ -23,7 +24,7 @@ enum class EEnemyState : uint8
 
 class UCapsuleComponent;
 UCLASS()
-class INABYSS_API AMinionBase : public AActor, public IStateInterface
+class INABYSS_API AMinionBase : public AActor, public IStateInterface, public IObjectPoolInterface
 {
 	GENERATED_BODY()
 	
@@ -59,17 +60,34 @@ public:
 	virtual void Damaged() override;
 	virtual void Die() override;
 
+	// ObjectPool Interface
+	virtual void Activate() override;
+	virtual void Deactivate() override;
+	virtual bool IsActivated() override;
+
 	virtual void Attack();
 
 	void SetTarget(AActor* NewTarget, int32 NewPriority = -1);
 
-protected:
+public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiRPC_PlayAttackMontage();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_PlayDeathMontage();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_Activate();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_Deactivate();
+	
+
+private:
 	void FindTarget();
 
 protected:
+	// Object Pool
+	bool bIsActivated = false;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")
 	USphereComponent* SphereComponent;
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")

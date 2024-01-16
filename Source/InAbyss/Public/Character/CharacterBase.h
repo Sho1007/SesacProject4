@@ -26,9 +26,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
+	// State Interface
 	virtual void Damaged() override;
-	
 	virtual void Die() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
