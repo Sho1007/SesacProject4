@@ -70,7 +70,7 @@ void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 		if (UStateComponentBase* TargetStateComponent = OtherActor->GetComponentByClass<UStateComponentBase>())
 		{
 			// 데미지 주는 기능 - ApplyDamage(물공 데미지, 마공 데미지 )
-			TargetStateComponent->ApplyDamage();
+			TargetStateComponent->ApplyDamage(ADDamage, APDamage);
 
 			Destroy();
 		}
@@ -137,6 +137,13 @@ void AProjectile_Turret::Attack_OverlapTarget()
 
 	// 자신을 파괴
 	Destroy();
+
+}
+
+void AProjectile_Turret::SetAttackDamage(float NewAttackDamage, float NewAbilityDamage)
+{
+	ADDamage = NewAttackDamage;
+	APDamage = NewAbilityDamage;
 
 }
 

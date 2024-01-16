@@ -5,13 +5,17 @@
 #include <Components/CapsuleComponent.h>
 #include "Component/StateComponentBase.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
+#include "AnimInstance/NexusAnimInstance.h"
 
 ANexus::ANexus()
 {
 	// 넥서스의 Collision세팅
 	CollisionComp->SetCapsuleRadius(350);
 
-
+	/*
+	NexusAnimInstance = Cast<UNexusAnimInstance>(MeshComp->GetAnimInstance());
+	check(NexusAnimInstance);
+	*/
 }
 
 void ANexus::BeginPlay()
@@ -20,7 +24,31 @@ void ANexus::BeginPlay()
 
 	BuildingState = EBuildingState::IDLE;
 
-	ScanBuildingInLevel();
+	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	//ScanBuildingInLevel();
+
+}
+
+void ANexus::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (BuildingState != EBuildingState::Destroy && PreBuilding.Num() != 0) {
+
+		for (ABuilding_Base* Building : PreBuilding) {
+
+			if (Building->BuildingState != EBuildingState::Destroy) {
+
+				CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+				return;
+			}
+
+		}
+
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	}
 
 }
 
@@ -104,15 +132,6 @@ void ANexus::ScanBuildingInLevel()
 
 }
 
-void ANexus::TakeDamage_Nexus()
-{
-	StateComponent_Building->ApplyDamage(10.f); // 임시 10 - 타격 대상의 공격력이 들어가야 할 듯
-
-	// 실행 순서
-	// TakeDamage_Turret() -> StateComponent_Building->ApplyDamage() -> OnRep_Health() -> Damaged() / Die()
-
-}
-
 void ANexus::Damaged()
 {
 	// 넥서스의 체력이 0보다 크면 - 호출할 거 없을 듯?
@@ -124,11 +143,12 @@ void ANexus::Die()
 	// 넥서스의 체력이 0 이하이면
 
 	// 모든 콜리전 NoCollision - 넥서스는 콜리전 끌 필요 없을 듯?
-	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	/*
 	// 넥서스가 파괴되었을 때의 연출 필요
-
-
+	NexusAnimInstance->bIsDeath = true;
+	*/
 
 
 	// 넥서스 상태를 Destroy로 변경

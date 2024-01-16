@@ -19,6 +19,7 @@ void UInhibitorAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// NativeUpdateAnimation 함수는 BeginPlay 이전에도 실행됨 (액터가 월드에 올라간 순간부터 실행되는듯) 
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
+	/*
 	if (Owner && Owner->GetBuildingState() == EBuildingState::Destroy)
 	{
 		bIsDeath = true;
@@ -29,5 +30,6 @@ void UInhibitorAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsDeath = false;
 	
 	}
+	*/
 
 }

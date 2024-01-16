@@ -24,12 +24,25 @@ void AInhibitor::BeginPlay()
 
 }
 
-void AInhibitor::TakeDamage_Inhibitor()
+void AInhibitor::Tick(float DeltaTime)
 {
-	StateComponent_Building->ApplyDamage(10.f); // 임시 10 - 타격 대상의 공격력이 들어가야 할 듯
+	Super::Tick(DeltaTime);
 
-	// 실행 순서
-	// TakeDamage_Turret() -> StateComponent_Building->ApplyDamage() -> OnRep_Health() -> Damaged() / Die()
+	if (BuildingState != EBuildingState::Destroy && PreBuilding.Num() != 0) {
+
+		for (ABuilding_Base* Building : PreBuilding) {
+
+			if (Building->BuildingState != EBuildingState::Destroy) {
+
+				return;
+			}
+
+		}
+
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	}
+
 
 }
 
@@ -39,7 +52,6 @@ void AInhibitor::ReBuildTimer()
 	FTimerHandle RebuildTimerhandle;
 
 	// 5분의 타이머를 진행하고, 타이머가 종료되면 억제기의 체력을 다시 최대로 만든다. 
-	InhibitorAnimInstance->bIsDeath = true;
 	GetWorldTimerManager().SetTimer(RebuildTimerhandle, this, &AInhibitor::ReBuild, 300, false); 
 
 }
@@ -48,14 +60,13 @@ void AInhibitor::ReBuild()
 {
 	BuildingState = EBuildingState::IDLE;
 
-	// 억제기 체력을 풀로 채워줌
-	//CurrentHealthPoiont_Building = MaxHealthPoiont_Building;
-	
-	//StateComponent_Building->
-
 	// 억제기 부활 애니메이션
+	// 애니메이션 연출을 위한 변수
+	InhibitorAnimInstance->bIsDeath = false;
 
-
+	// 억제기 체력을 풀로 채워줌
+	StateComponent_Building->SetHealthToMax();
+	
 
 }
 
@@ -71,11 +82,12 @@ void AInhibitor::Die()
 
 	// 모든 콜리전 NoCollision - 억제기는 콜리전 끌 필요 없을듯?
 	
-	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// 억제기가 파괴되었을 때의 연출 필요 - 애니메이션
 
 
+	InhibitorAnimInstance->bIsDeath = true;
 
 
 	// 억제기 상태를 Destroy로 변경
