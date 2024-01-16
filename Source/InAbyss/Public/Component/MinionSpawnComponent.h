@@ -30,7 +30,12 @@ public:
 private:
 	void SpawnMinion();
 
+	void SpawnMinionTimerFuntion();
+
 protected:
+	UPROPERTY(VisibleInstanceOnly)
+	int32 LineCount = 0;
+	
 	UPROPERTY(VisibleInstanceOnly)
 	EFactionType FactionType;
 	

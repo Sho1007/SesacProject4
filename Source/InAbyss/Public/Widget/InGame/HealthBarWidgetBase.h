@@ -17,12 +17,12 @@ class INABYSS_API UHealthBarWidgetBase : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void InitStateComponent(UStateComponentBase* NewStateComponent);
+	virtual void InitStateComponent(UStateComponentBase* NewStateComponent);
 
 	UFUNCTION()
 	void UpdateHP(float NewHPPercent);
 	
-private:
-	UPROPERTY(BlueprintReadWrite, Meta = (AllowPrivateAccess))
+protected:
+	UPROPERTY(BlueprintReadWrite)
 	float HPPercent;
 };

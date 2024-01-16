@@ -24,9 +24,11 @@ void UStateComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-
-	Health = MaxHealth;
+	if (GetOwner()->HasAuthority())
+	{
+		
+		SetHealth(MaxHealth);
+	}
 }
 
 // Called every frame
@@ -42,6 +44,7 @@ void UStateComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UStateComponentBase, Health);
+	DOREPLIFETIME(UStateComponentBase, Mana);
 }
 
 EFactionType UStateComponentBase::GetFactionType() const
@@ -84,6 +87,11 @@ void UStateComponentBase::SetObjectType(EObjectType NewObjectType)
 	ObjectType = NewObjectType;
 }
 
+void UStateComponentBase::SetHealthToMax()
+{
+	SetHealth(MaxHealth);
+}
+
 void UStateComponentBase::SetAbilityPower(float NewAbilityPower)
 {
 	AbilityPower = NewAbilityPower;
@@ -94,18 +102,26 @@ void UStateComponentBase::SetAttackDamage(float NewAttackDamage)
 	AttackDamage = NewAttackDamage;
 }
 
+void UStateComponentBase::SetHealth(float NewHealth)
+{
+	Health = FMath::Clamp(NewHealth, 0.f, MaxHealth);
+	OnRep_Health();
+}
+
+void UStateComponentBase::SetMana(float NewMana)
+{
+	Mana = FMath::Clamp(NewMana, 0.f, MaxMana);
+	OnRep_Mana();
+}
+
 void UStateComponentBase::ApplyDamage(float ADDamage, float APDamage)
 {
 	if (GetOwner()->HasAuthority() == false) return;
 	
 	float TotalDamage = ADDamage + APDamage;
 
-	Health -= TotalDamage;
-	OnRep_Health();
-}
+	SetHealth(Health - TotalDamage);
 
-void UStateComponentBase::OnRep_Health()
-{
 	if (auto Interface = GetOwner<IStateInterface>())
 	{
 		if (Health > 0.f)
@@ -117,8 +133,25 @@ void UStateComponentBase::OnRep_Health()
 			Interface->Die();
 		}
 	}
+}
 
+void UStateComponentBase::AddHealth(float AddAmount)
+{
+	// Todo : 20240116 OSH 
+	// Todo : If need to use Over Healed Health Amount, use this
+	float OverHealthAmount = (AddAmount + Health) > MaxHealth ? (AddAmount + Health) - MaxHealth : 0.f;
+	
+	SetHealth(AddAmount + Health);
+}
+
+void UStateComponentBase::OnRep_Health()
+{
 	OnHPChanged.Broadcast(Health / MaxHealth);
+}
+
+void UStateComponentBase::OnRep_Mana()
+{
+	OnMPChanged.Broadcast(Mana / MaxMana);
 }
 
 void UStateComponentBase::OnRep_AttackDamage()

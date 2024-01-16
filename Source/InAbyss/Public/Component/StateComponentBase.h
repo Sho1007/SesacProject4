@@ -66,14 +66,28 @@ public:
 	// Setter
 	void SetFactionType(EFactionType NewFactionType);
 	void SetObjectType(EObjectType NewObjectType);
+
+	void SetHealthToMax();
+
+private:
 	void SetAbilityPower(float NewAbilityPower);
 	void SetAttackDamage(float NewAttackDamage);
 
+	void SetHealth(float NewHealth);
+	void SetMana(float NewMana);
+public:
+	// Health
 	UFUNCTION(BlueprintCallable)
 	void ApplyDamage(float ADDamage = 0.f, float APDamage = 0.f);
+	UFUNCTION(BlueprintCallable)
+	void AddHealth(float AddAmount);
+
+	// Mana
 
 	UFUNCTION()
 	void OnRep_Health();
+	UFUNCTION()
+	void OnRep_Mana();
 	UFUNCTION()
 	void OnRep_AttackDamage();
 	UFUNCTION()
@@ -89,6 +103,11 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_Health")
 	float Health;
 
+	UPROPERTY(EditDefaultsOnly)
+	float MaxMana = 100.f;
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_Mana")
+	float Mana;
+
 	UPROPERTY(EditAnywhere, ReplicatedUsing = "OnRep_AttackDamage")
 	float AttackDamage;
 	UPROPERTY(EditAnywhere, ReplicatedUsing = "OnRep_AttackDamage")
@@ -97,4 +116,5 @@ protected:
 public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FDELE_MULTI_ONE_FLOAT, float);
 	FDELE_MULTI_ONE_FLOAT OnHPChanged;
+	FDELE_MULTI_ONE_FLOAT OnMPChanged;
 };
