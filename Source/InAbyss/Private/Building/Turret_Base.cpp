@@ -148,6 +148,25 @@ void ATurret_Base::Tick(float DeltaTime)
 		DrawDebugLine(GetWorld(), AttackStartPointComp->GetComponentLocation(), CurrentTarget->GetActorLocation(), FColor::Red, false, -1, 0, 1.0f);
 	}
 
+	// ---------------------------------------------------------------------------------
+
+	if (BuildingState != EBuildingState::Destroy && PreBuilding.Num() != 0) {
+
+		for (ABuilding_Base* Building : PreBuilding) {
+
+			if (Building->BuildingState != EBuildingState::Destroy) {
+
+				return;
+			}
+
+		}
+
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	}
+
+
+
 }
 
 void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -576,16 +595,11 @@ void ATurret_Base::Attact_SpawnProjectile()
 		// 발사체의 공격 대상 타겟팅
 		NewProjectile->AttackTargeting();
 
+		// 발사체 공격력 세팅
+		NewProjectile->SetAttackDamage(StateComponent_Building->GetAttackDamage(), StateComponent_Building->GetAbilityPower());
+
 	}
 
-}
-
-void ATurret_Base::TakeDamage_Turret()
-{
-	StateComponent_Building->ApplyDamage(10.f); // 임시 10 - 타격 대상의 공격력이 들어가야 할 듯
-
-	// 실행 순서
-		// TakeDamage_Turret() -> StateComponent_Building->ApplyDamage() -> OnRep_Health() -> Damaged() / Die()
 }
 
 void ATurret_Base::Damaged()
@@ -600,7 +614,7 @@ void ATurret_Base::Die()
 	// 포탑의 체력이 0 이하이면
 
 	// 모든 콜리전 NoCollision
-	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	DetectCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// 공격 대상을 모두 제거

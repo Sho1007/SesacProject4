@@ -28,7 +28,6 @@ ABuilding_Base::ABuilding_Base()
 
 
 	StateComponent_Building = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponentBase_Building"));
-	StateComponent_Building->SetObjectType(EObjectType::BUILDING);
 
 }
 
@@ -37,10 +36,15 @@ void ABuilding_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (PreBuilding.Num() == 0) {
-		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	// 만약 내 앞의 건물이 남아 있다면, 무적상태가 되어야 함 - 콜리전을 꺼버림
+	if (PreBuilding.Num() != 0) {
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	}
+
+	StateComponent_Building->SetObjectType(EObjectType::BUILDING);
+
+
 }
 
 // Called every frame
@@ -49,31 +53,25 @@ void ABuilding_Base::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	/*
-	if (CollisionComp->GetCollisionEnabled() != ECollisionEnabled::NoCollision) {
-
+	if (PreBuilding.Num() != 0) {
+		
 		for (ABuilding_Base* Building : PreBuilding) {
-	
-			if (Building->BuildingState != EBuildingState::Destroy) {
 			
-				UE_LOG(LogTemp, Warning, TEXT("You can't1"));
+			if (Building->BuildingState != EBuildingState::Destroy) {
 
+				CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-				break;
+				return;
 			}
-
-			UE_LOG(LogTemp, Warning, TEXT("3"));
-
+			
 		}
+
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	}
 	*/
-	
 
 
-	if (CollisionComp->GetCollisionEnabled() != ECollisionEnabled::QueryOnly) {
-		ActivateHit();
-
-	}
 }
 
 EBuildingState ABuilding_Base::GetBuildingState() const
@@ -85,8 +83,18 @@ EBuildingState ABuilding_Base::GetBuildingState() const
 void ABuilding_Base::Damaged() {}
 void ABuilding_Base::Die() {}
 
+void ABuilding_Base::TakeDamage_Building()
+{
+	StateComponent_Building->ApplyDamage(10.f); // 임시 10 - 타격 대상의 공격력이 들어가야 할 듯
+
+	// 실행 순서
+		// TakeDamage_Turret() -> StateComponent_Building->ApplyDamage() -> OnRep_Health() -> Damaged() / Die()
+}
+
 void ABuilding_Base::ActivateHit()
 {
+	// 이거 안 씀
+
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	//UE_LOG(LogTemp, Warning, TEXT("You can2"));

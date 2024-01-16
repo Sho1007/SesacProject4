@@ -78,11 +78,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AProjectile_Turret> ProjectileFactory;
 
-public:
-	// 피격시 호출할 함수 = 데미지를 입을 때 호출
-	UFUNCTION(CallInEditor)
-	void TakeDamage_Turret();
-
 public: // 인터페이스 함수
 	// 피격시 체력이 남았을 때 호출
 	virtual void Damaged() override;

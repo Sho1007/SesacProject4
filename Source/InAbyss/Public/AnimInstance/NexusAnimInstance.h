@@ -4,23 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "InhibitorAnimInstance.generated.h"
+#include "NexusAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class INABYSS_API UInhibitorAnimInstance : public UAnimInstance
+class INABYSS_API UNexusAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-
+	
 public:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 //protected:
 	UPROPERTY()
-	class AInhibitor* Owner;
+	class ANexus* Owner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim")
 	bool bIsDeath = false;

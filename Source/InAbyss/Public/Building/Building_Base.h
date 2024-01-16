@@ -67,4 +67,10 @@ public: // 인터페이스 가상함수 상속 부분
 	// 건축물이 파괴되었을 때 호출 = CurrentHealthPoiont_Building이 되었을 때 호출 
 	virtual void Die() override;
 	
+
+
+public: //  테스트용
+	// 피격시 호출할 함수 = 데미지를 입을 때 호출
+	UFUNCTION(CallInEditor)
+	void TakeDamage_Building();
 };

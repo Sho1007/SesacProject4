@@ -23,9 +23,8 @@ public:
 	virtual void BeginPlay() override;
 
 public:
-	// 피격시 호출할 함수 = 데미지를 입을 때 호출
-	UFUNCTION(CallInEditor)
-	void TakeDamage_Inhibitor();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 public:	// 
 	// 건물 파괴시 호출할 타이머 함수
