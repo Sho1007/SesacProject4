@@ -48,8 +48,8 @@ void UMinionAnimInstance::PlayDeathMontage()
 void UMinionAnimInstance::AnimNotify_OnDeathFinished()
 {
 	if (GetOwningActor()->HasAuthority() == false) return;
-	UE_LOG(LogTemp, Warning, TEXT("UMinionAnimInstance::AnimNotify_OnDeathFinished"));
-	GetOwningActor()->Destroy();
+
+	Owner->Deactivate();
 }
 
 void UMinionAnimInstance::AnimNotify_Attack()

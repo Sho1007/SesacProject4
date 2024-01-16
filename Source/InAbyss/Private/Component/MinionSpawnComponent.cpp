@@ -29,6 +29,8 @@ void UMinionSpawnComponent::BeginPlay()
 		{
 			FactionType = StateComponentBase->GetFactionType();
 		}
+
+		PrepareMinion();
 	}
 	else
 	{
@@ -52,21 +54,133 @@ void UMinionSpawnComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	}
 }
 
-void UMinionSpawnComponent::SpawnMinion()
+void UMinionSpawnComponent::PrepareMinion()
 {
+	// Params
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
 	if (MeleeMinionClass)
 	{
-		FActorSpawnParameters Params;
-		// Params.
-		AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(MeleeMinionClass, SpawnLocation, FRotator(),
-			Params);
-		if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
+		for (int i = 0; i < MeleeMinionPoolCount; ++i)
 		{
-			MinionStateComponent->SetFactionType(FactionType);
+			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(MeleeMinionClass, SpawnLocation, FRotator(),
+			Params);
+			Minion->Deactivate();
+			if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
+			{
+				MinionStateComponent->SetFactionType(FactionType);
+			}
+
+			MeleeMinionObjectPool.Add(Minion);
 		}
 	}
+
+	if (CasterMinionClass)
+	{
+		for (int i = 0; i < CasterMinionPoolCount; ++i)
+		{
+			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(CasterMinionClass, SpawnLocation, FRotator(),
+			Params);
+			Minion->Deactivate();
+			if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
+			{
+				MinionStateComponent->SetFactionType(FactionType);
+			}
+
+			CasterMinionObjectPool.Add(Minion);
+		}
+	}
+
+	if (SiegeMinionClass)
+	{
+		for (int i = 0; i < SiegeMinionPoolCount; ++i)
+        {
+        	AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(SiegeMinionClass, SpawnLocation, FRotator(),
+        	Params);
+        	Minion->Deactivate();
+        	if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
+        	{
+        		MinionStateComponent->SetFactionType(FactionType);
+        	}
+
+        	SiegeMinionObjectPool.Add(Minion);
+        }
+	}
+}
+
+void UMinionSpawnComponent::SpawnMinion()
+{
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+	TimerManager.ClearTimer(SpawnMinionTimerHandle);
+
+	LineCount++;
+	TimerManager.SetTimer(SpawnMinionTimerHandle, this, &UMinionSpawnComponent::SpawnMinionTimerFuntion, SpawnInterval, true);
 }
 
 void UMinionSpawnComponent::SpawnMinionTimerFuntion()
 {
+	if (SpawnIndex < 3)
+	{
+		if (LineCount % 3 == 0 && SpawnIndex == 0 && false /* bIsInhibitorDestroyed == true */ && bSuperMinionSpawned == false )
+		{
+			// Spawn Super Minion
+			// bSuperMinionSpawned = true;
+		}
+		else
+		{
+			// Spawn Caster Minion
+			for (auto Iter : MeleeMinionObjectPool)
+			{
+				if (Iter->IsActivated() == false)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UMinionSpawnComponent::SpawnMinionTimerFuntion) Activated Object : %s"), *Iter->GetActorNameOrLabel());
+					Iter->Activate();
+					break;
+				}
+			}
+
+			SpawnIndex++;
+		}
+	}
+	else
+	{
+		if (LineCount % 3 == 0 && SpawnIndex == 3 && bSuperMinionSpawned == false)
+		{
+			bSuperMinionSpawned = true;
+
+			// Spawn Seige Minion
+			for (auto Iter : SiegeMinionObjectPool)
+			{
+				if (Iter->IsActivated() == false)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UMinionSpawnComponent::SpawnMinionTimerFuntion) Activated Object : %s"), *Iter->GetActorNameOrLabel());
+					Iter->Activate();
+					break;
+				}
+			}
+		}
+		else
+		{
+			// Spawn Caster Minion
+			for (auto Iter : CasterMinionObjectPool)
+			{
+				if (Iter->IsActivated() == false)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UMinionSpawnComponent::SpawnMinionTimerFuntion) Activated Object : %s"), *Iter->GetActorNameOrLabel());
+					Iter->Activate();
+					break;
+				}
+			}
+
+			SpawnIndex++;
+		}
+	}
+	
+	if (SpawnIndex == 6)
+	{
+		bSuperMinionSpawned = false;
+		SpawnIndex = 0; 
+		GetWorld()->GetTimerManager().ClearTimer(SpawnMinionTimerHandle);
+	}
 }
