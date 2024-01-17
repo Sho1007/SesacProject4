@@ -274,7 +274,8 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	*/
 
 	// 상태 컴포넌트를 갖고 있고, 같은 팀이 아니라면
-	if (OtherActor->GetComponentByClass<UStateComponentBase>() && OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
+	if (OtherActor->GetComponentByClass<UStateComponentBase>() && 
+	OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
 
 		if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
 			DetectTargets_SuperOrCanon.Add(OtherActor);
@@ -557,7 +558,7 @@ void ATurret_Base::RetargetCurrentTarget()
 	}
 
 
-
+	/*
 	// 남아있는 배열이 있다면, 우선순위에 따라 해당 배열의 0번 인덱스를 공격 대상으로 함 
 	// 1. 슈퍼/공성 미니언 ==== 2.전사 미니언 ==== 3. 마법사 미니언 ==== 4. 적 챔피언
 	if (DetectTargets_SuperOrCanon.Num() > 0) {
@@ -574,7 +575,7 @@ void ATurret_Base::RetargetCurrentTarget()
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
-
+	*/
 
 }
 
