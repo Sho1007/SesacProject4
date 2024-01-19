@@ -49,9 +49,9 @@ public:
 	UFUNCTION()
 	void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void Separation();
-	void Alignment();
-	void Cohesion();
+	FVector Separation();
+	FVector Alignment();
+	FVector Cohesion();
 
 	UFUNCTION(CallInEditor)
 	void TestDamageFunction();
@@ -129,6 +129,17 @@ protected:
 	float MoveSpeed = 200.f;
 
 private:
+	// Boids
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
+	float SeparationDistance = 40.f;
+	float NeighborDistance = 100.f;
+
+	float SeparationWeight = 1.f;
+	float AlignmentWeight = 1.f;
+	float CohesionWeight = 1.f;
+
+
+	
 	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
 	TArray<AActor*> NeighborActorArray;
 	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
