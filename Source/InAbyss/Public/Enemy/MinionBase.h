@@ -8,6 +8,7 @@
 #include "Interface/StateInterface.h"
 #include "MinionBase.generated.h"
 
+class AEnemyProjectile;
 class UWidgetComponent;
 class USphereComponent;
 class UStateComponentBase;
@@ -66,6 +67,7 @@ public:
 	virtual bool IsActivated() override;
 
 	virtual void Attack();
+	virtual void EndAttack();
 
 	void SetTarget(AActor* NewTarget, int32 NewPriority = -1);
 
@@ -118,9 +120,14 @@ protected:
 	int32 TargetPriority;
 	UPROPERTY(VisibleInstanceOnly, Category = "Target")
 	float TargetDistance;
-	
+
+	// Attack
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	TSubclassOf<AEnemyProjectile> EnemyProjectileClass;
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	float AttackDistance = 100.f;
+	UPROPERTY(VisibleInstanceOnly, Category = "Attack")
+	bool bIsAttacking = false;
 
 	UPROPERTY(EditAnywhere, Category = "FindTarget")
 	float FindTargetDistance = 200.f;
@@ -137,8 +144,6 @@ private:
 	float SeparationWeight = 1.f;
 	float AlignmentWeight = 1.f;
 	float CohesionWeight = 1.f;
-
-
 	
 	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
 	TArray<AActor*> NeighborActorArray;

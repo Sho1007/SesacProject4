@@ -27,7 +27,8 @@ protected:
 	bool bIsMove = false;
 
 	UPROPERTY(EditDefaultsOnly)
-	UAnimMontage* AttackMontage;
+	TArray<UAnimMontage*> AttackMontageArray;
+	int32 AttackMontageIndex = 0;
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* DeathMontage;
 
@@ -35,4 +36,6 @@ protected:
 	void AnimNotify_OnDeathFinished();
 	UFUNCTION()
 	void AnimNotify_Attack();
+	UFUNCTION()
+	void AnimNotify_EndAttack();
 };

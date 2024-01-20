@@ -11,6 +11,7 @@
 #include "NetworkMessage.h"
 #include "AnimInstance/MinionAnimInstance.h"
 #include "Component/StateComponentBase.h"
+#include "Enemy/EnemyProjectile.h"
 
 #include "Widget/InGame/HealthBarWidgetBase.h"
 
@@ -98,7 +99,7 @@ void AMinionBase::Tick(float DeltaTime)
 	// 	}
 	// }
 
-	if (AnimInstance->IsAnyMontagePlaying()) return;
+	if (bIsAttacking == true) return;
 
 	FVector TargetVector;
 	if (Target != nullptr)
@@ -170,8 +171,12 @@ void AMinionBase::Tick(float DeltaTime)
 			}
 			else
 			{
-				SetActorRotation(FRotationMatrix::MakeFromX(TargetVector).Rotator());
-				MultiRPC_PlayAttackMontage();
+				if (bIsAttacking == false)
+				{
+					bIsAttacking = true;
+					SetActorRotation(FRotationMatrix::MakeFromX(TargetVector).Rotator());
+					MultiRPC_PlayAttackMontage();
+				}
 			}
 		}
 		else
@@ -333,9 +338,28 @@ bool AMinionBase::IsActivated()
 void AMinionBase::Attack()
 {
 	if (HasAuthority() == false) return;
+	
+	// 근거리
+	if (EnemyProjectileClass == nullptr)
+	{
+		UE_LOG(LogTemp,Warning, TEXT("AMinionBase::Attack) Has State Comp"));
+		TargetStateComponent->ApplyDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
+	}
+	// 원거리
+	else
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FVector SocketLocation = SkeletalMeshComponent->GetSocketLocation(TEXT("ProjectileSocket"));
+		AEnemyProjectile* Projectile = GetWorld()->SpawnActor<AEnemyProjectile>(EnemyProjectileClass, SocketLocation, GetActorRotation(), SpawnParameters);
+		Projectile->SetDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
+		Projectile->SetTarget(Target);
+	}
+}
 
-	UE_LOG(LogTemp,Warning, TEXT("AMinionBase::Attack) Has State Comp"));
-	TargetStateComponent->ApplyDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
+void AMinionBase::EndAttack()
+{
+	bIsAttacking = false;
 }
 
 void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
