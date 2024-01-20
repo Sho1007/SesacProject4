@@ -11,6 +11,7 @@
 #include <../../../../../../../Source/Runtime/Engine/Classes/Components/SphereComponent.h>
 #include "Enemy/MinionBase.h"
 #include "Building/Building_Base.h"
+#include "AnimInstance/GarenAnimInstance.h"
 
 
 // Sets default values
@@ -34,10 +35,12 @@ AGaren::AGaren()
 	CameraComp->SetupAttachment(SpringArmComp);
 	CameraComp->FieldOfView = 55.f;
 
+	/*
 	// 공격 범위 콜리전
 	AttackRange = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRange"));
 	AttackRange->SetupAttachment(RootComponent);
-	AttackRange->SetSphereRadius(130);
+	AttackRange->SetSphereRadius(180);
+	*/
 
 }
 
@@ -56,11 +59,23 @@ void AGaren::BeginPlay()
 	}
 	// -----------------------
 
-	// -----------------------
 	GarenState = EGarenState::IDLE;
+
+	// -----------------------
 
 	CursorPlace = GetActorLocation();
 
+	// -----------------------
+
+	GarenAnim = Cast<UGarenAnimInstance>(this->GetMesh()->GetAnimInstance());
+	check(GarenAnim);
+	
+	/* // UI부분
+	if (UHealthBarWidgetBase* HealthBarWidget = Cast<UHealthBarWidgetBase>(HealthBarWidgetComponent->GetWidget()))
+	{
+		HealthBarWidget->InitStateComponent(StateComponent);
+	}
+	*/
 }
 
 // Called every frame
@@ -70,46 +85,11 @@ void AGaren::Tick(float DeltaTime)
 
 	if (GarenState == EGarenState::MOVE) {
 
-		/*
-		FVector TargetLocation = GetActorLocation() + Direction * Speed * DeltaTime;
-		SetActorLocation(FVector(TargetLocation.X, TargetLocation.Y, GetActorLocation().Z)); // 떨림을 없애기 위해 Z값은 고정
-		*/
-
 		// 가렌 Location -----------------------------------------------------------
-		float Speed = 300;
-
-		// 캐릭터의 현재 위치를 저장
-		FVector ActorLocatoin = GetActorLocation();
-		ActorLocatoin.Z = 0.f;
-		// 지정된 위치의 방향을 설정
-		FVector Direction = (CursorPlace - ActorLocatoin).GetSafeNormal();
-
-		// 캐릭터의 위치를 이동
-		AddActorWorldOffset(Direction * Speed * DeltaTime);
-
-		// 지정한 위치 도착시, 오차범위 10 이내이면 상태를 IDLE로 전환
-		if (FVector::Dist(ActorLocatoin, CursorPlace) <= 10) {
-			GarenState = EGarenState::IDLE;
-		}
-
-		// 가렌 Rotation -----------------------------------------------------------
-		// 
-		// 캐릭터의 Yaw값만 변화하면 됨
-		FRotator TurnRotation = Direction.Rotation();
-		TurnRotation.Pitch = 0.f;  // 방향 이동시 Pitch를 0으로 고정
-		TurnRotation.Roll = 0.f;  // 방향 이동시 Pitch를 0으로 고정
-
+		Move_Garen();
 		
-		// 서서히 회전
-		CurrentRotation = FMath::RInterpTo(CurrentRotation, TurnRotation, DeltaTime, 10);
-
-		// 최종 회전 설정 - Tick으로 갱신
-		SetActorRotation(CurrentRotation);
-
-		/*
-		SetActorRotation(TurnRotation);
-		CurrentRotation = GetActorRotation();
-		*/
+		// 가렌 Rotation -----------------------------------------------------------
+		Turn_Garen();
 
 		// 로그
 		/*
@@ -122,31 +102,9 @@ void AGaren::Tick(float DeltaTime)
 	}
 	else
 	{
-
-		// 캐릭터의 현재 위치를 저장
-		FVector ActorLocatoin = GetActorLocation();
-		ActorLocatoin.Z = 0.f;
-		// 지정된 위치의 방향을 설정
-		FVector Direction = (CursorPlace - ActorLocatoin).GetSafeNormal();
-
 		// 가렌 Rotation -----------------------------------------------------------
-		// 캐릭터의 Yaw값만 변화하면 됨
+		Turn_Garen();
 
-		FRotator TurnRotation = Direction.Rotation();
-		TurnRotation.Pitch = 0.f;  // 방향 이동시 Pitch를 0으로 고정
-		TurnRotation.Roll = 0.f;  // 방향 이동시 Pitch를 0으로 고정
-
-		// 서서히 회전
-		CurrentRotation = FMath::RInterpTo(CurrentRotation, TurnRotation, DeltaTime, 10);
-		
-		// 최종 회전 설정 - Tick으로 갱신
-		SetActorRotation(CurrentRotation);
-
-		/*
-		SetActorRotation(TurnRotation);
-
-		CurrentRotation = GetActorRotation();
-		*/
 	}
 
 
@@ -164,7 +122,7 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
 	if (EnhancedInputComponent) {
-		// 마우스 우클릭 입력
+		// 마우스 우클릭 입력 - 이동 및 공격 타겟 설정
 		EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Started, this, &AGaren::MouseRightClick);
 		EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Triggered, this, &AGaren::MouseRightClick);
 
@@ -193,14 +151,8 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 {
+	
 
-	// 공격 범위에 공격대상이 들어온 경우
-	if (OtherActor == Target_Test) {
-
-		// 일반공격 함수를 호출
-		Attack_Normal_Garen();
-
-	}
 
 }
 
@@ -222,56 +174,73 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Right"));
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController)
+	if (!PlayerController)
 	{
+		return;
+	}
 
-		// 마우스로 클릭한 위치의 정보를 담기 위한 기능
-		if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
-			// 클릭한 위치의 위치값을 저장
-			CursorPlace = HitInfo.Location;
-			CursorPlace.Z = 0.f;
+	// 저장된 액터가 있다면 모두 삭제
+	if (Target_Minion) {
+		Target_Minion = nullptr;
+	}
+	if (Target_Champion) {
+		Target_Champion = nullptr;
+	}
+	if (Target_Building) { 
+		Target_Building = nullptr;
+	}
 
-			/* //클릭한 위치 값을 가져오는 로그
-			UE_LOG(LogTemp, Warning, TEXT("CursorPlace: %s"), *CursorPlace.ToString());
-			*/
+	// 마우스로 클릭한 위치의 정보를 담기 위한 기능
+	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
+		// 클릭한 위치의 위치값을 저장
+		CursorPlace = HitInfo.Location;
+		CursorPlace.Z = 0.f;
 
-			// 클릭한 위치의 액터를 저장 - 없다면 저장되지 않을 것
-			MouseHitActor = HitInfo.GetActor();
+		// 클릭한 위치의 액터를 저장 - 없다면 저장되지 않을 것
+		MouseHitActor = HitInfo.GetActor();
 
-			/* // 저장된 액터의 정보를 가져오는 로그
-			UE_LOG(LogTemp, Warning, TEXT("MouseHitActor: %s"), *MouseHitActor->GetName());
-			*/
+		/* //클릭한 위치 값을 가져오는 로그 // 저장된 액터의 정보를 가져오는 로그
+		UE_LOG(LogTemp, Warning, TEXT("CursorPlace: %s"), *CursorPlace.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("MouseHitActor: %s"), *MouseHitActor->GetName());
+		*/
 
-			//if(MouseHitActor && MouseHitActor->GetComponentByClass<UStateComponentBase>() && MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != StateComp_Garen->GetFactionType())
+	}
 
-			// 마우스로 클릭한 위치에 액터가 있고, 상태 컴포넌트를 가지며, 같은 팀이 아니라면
-			if (MouseHitActor && MouseHitActor->GetComponentByClass<UStateComponentBase>()) {
-				// 저장된 액터의 스테이트 컴포넌트를 저장
-				UStateComponentBase* StateComponentBase = MouseHitActor->GetComponentByClass<UStateComponentBase>();
-				// 같은 팀인지 판단하고, 만약 적이라면
-				if (StateComponentBase && StateComponentBase->GetFactionType() != StateComp_Garen->GetFactionType()) {
+	// 클릭한 위치의 액터를 분류해서 저장하는 기능 - StateComponent, FactionType, ObjectType으로 구분
+	// 마우스로 클릭한 위치의 액터가 상태 컴포넌트를 가진다면
+	if (MouseHitActor && MouseHitActor->GetComponentByClass<UStateComponentBase>()) {
 
-					// 공격대상으로 지정 - 임시
-					Target_Test = MouseHitActor;
+		// 저장된 액터의 스테이트 컴포넌트를 저장
+		UStateComponentBase* StateComponentBase = MouseHitActor->GetComponentByClass<UStateComponentBase>();
 
-					// 각 액터의 종류에 따라 변수 저장
-					if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::MINION) {
-						Target_Minion = Cast<AMinionBase>(MouseHitActor); // 공격대상이 미니언이라면
+		// 만약 같은 팀이 아니라면
+		if (StateComponentBase && StateComponentBase->GetFactionType() != StateComp_Garen->GetFactionType()) {
 
-					}
-					else if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
-						Target_Champion = Cast<ACharacter>(MouseHitActor); // 공격대상이 챔피언이라면
+			// 각 액터의 종류에 따라 변수 저장
+			if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::MINION || MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
+				Target_Minion = Cast<AMinionBase>(MouseHitActor); // 공격대상이 미니언이라면
 
-					}
-					else if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::BUILDING) {
-						Target_Building = Cast<ABuilding_Base>(MouseHitActor); // 공격대상이 타워라면
+			}
+			else if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
+				Target_Champion = Cast<ACharacter>(MouseHitActor); // 공격대상이 챔피언이라면
 
-					}
-
-				}
+			}
+			else if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::BUILDING) {
+				Target_Building = Cast<ABuilding_Base>(MouseHitActor); // 공격대상이 타워라면
 
 			}
 
+			// 로그 - 임시
+			if (Target_Minion) {
+				UE_LOG(LogTemp, Warning, TEXT("Target_Minion : %s"), *Target_Minion->GetName());
+			}
+			if (Target_Champion) {
+				UE_LOG(LogTemp, Warning, TEXT("Target_Champion : %s"), *Target_Champion->GetName());
+			}
+			if (Target_Building) {
+				UE_LOG(LogTemp, Warning, TEXT("Target_Building : %s"), *Target_Building->GetName());
+
+			}
 		}
 
 	}
@@ -279,45 +248,39 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	// 위치 값이 자신과 다르다면 
 	if (CursorPlace != GetActorLocation()) {
 
-
-		Move_Garen();
+		GarenState = EGarenState::MOVE;
 
 	}
 
+	// 클린된 액터 삭제
+	MouseHitActor = nullptr;
+
 	// 이동 함수 호출
+	UE_LOG(LogTemp, Warning, TEXT("==========================================="));
+
+}
+
+void AGaren::MouseRightClick_Triggered(const FInputActionValue& value)
+{
+	
+
 
 }
 
 void AGaren::MouseLeftClick(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Left"));
-
 	// 특정 스킬을 사용한 경우, 대상을 지정해야 할 때 사용한다. 
 
 
 }
 
-void AGaren::Move_Garen()
+void AGaren::Move_Garen() // 가렌의 이동
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Move_Success"));
 
 	// 지정된 위치로 이동한다. 
-	// 만약 중간에 장애물이 있다면 피해서 지정된 위치로 이동한다. 
 
-	//UE_LOG(LogTemp, Warning, TEXT("CursorPlace: %s"), *CursorPlace.ToString());
-
-
-	// 캐릭터가 이동해야 하는 방향을 바라보도록 만듦 - Rotation값 수정
-
-
-	GarenState = EGarenState::MOVE;
-
-}
-
-void AGaren::aaa()
-{
-	
-	// 가렌 Location -----------------------------------------------------------
 	float Speed = 300;
 
 	// 캐릭터의 현재 위치를 저장
@@ -329,6 +292,33 @@ void AGaren::aaa()
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
 
+	// 지정된 타겟이 있을 경우
+	if (Target_Minion) {
+		//오차범위 10 이내이면 상태를 ATTACK로 전환
+		if (FVector::Dist(ActorLocatoin, Target_Minion->GetActorLocation()) <= 200) {
+			GarenState = EGarenState::ATTACK;
+			GarenAnim->PlayANM_Attack();
+		}
+		return;
+
+	}
+	else if (Target_Champion) {
+		//오차범위 10 이내이면 상태를 ATTACK로 전환
+		if (FVector::Dist(ActorLocatoin, Target_Champion->GetActorLocation()) <= 200) {
+			GarenState = EGarenState::ATTACK;
+		}
+		return;
+
+	}
+	else if (Target_Building) {
+		//오차범위 10 이내이면 상태를 ATTACK로 전환
+		if (FVector::Dist(ActorLocatoin, Target_Building->GetActorLocation()) <= 200) {
+			GarenState = EGarenState::ATTACK;
+		}
+		return;
+
+	}
+
 	// 지정한 위치 도착시, 오차범위 10 이내이면 상태를 IDLE로 전환
 	if (FVector::Dist(ActorLocatoin, CursorPlace) <= 10) {
 		GarenState = EGarenState::IDLE;
@@ -336,29 +326,28 @@ void AGaren::aaa()
 
 }
 
-void AGaren::bbb()
+void AGaren::Turn_Garen() // 가렌의 회전 
 {
-	
+
 	// 캐릭터의 현재 위치를 저장
 	FVector ActorLocatoin = GetActorLocation();
 	ActorLocatoin.Z = 0.f;
 	// 지정된 위치의 방향을 설정
 	FVector Direction = (CursorPlace - ActorLocatoin).GetSafeNormal();
 
-
 	// 가렌 Rotation -----------------------------------------------------------
 	// 캐릭터의 Yaw값만 변화하면 됨
 
-	FRotator NewRotation = Direction.Rotation();
-	NewRotation.Pitch = 0.f;  // 방향 이동시 Pitch를 0으로 고정
-	NewRotation.Roll = 0.f;  // 방향 이동시 Pitch를 0으로 고정
+	FRotator TurnRotation = Direction.Rotation();
+	TurnRotation.Pitch = 0.f;  // 방향 이동시 Pitch를 0으로 고정
+	TurnRotation.Roll = 0.f;  // 방향 이동시 Pitch를 0으로 고정
 
+	// 서서히 회전
+	CurrentRotation = FMath::RInterpTo(CurrentRotation, TurnRotation, GetWorld()->GetDeltaSeconds(), 10); // tick마다 10씩 이동
 
-	SetActorRotation(NewRotation);
+	// 최종 회전 설정 - Tick으로 갱신
+	SetActorRotation(CurrentRotation);
 
-	UE_LOG(LogTemp, Warning, TEXT("GetActorRotation: %s"), *GetActorRotation().ToString());
-
-	UE_LOG(LogTemp, Warning, TEXT("NewRotation: %s"), *NewRotation.ToString());
 }
 
 void AGaren::Attack_Normal_Garen()
@@ -367,8 +356,9 @@ void AGaren::Attack_Normal_Garen()
 
 	// 공격 대상이 지정되었을 때, 대상이 공격범위에 있다면 대상을 공격한다. 
 
+	//GarenState = EGarenState::ATTACK;
 
-
+	UE_LOG(LogTemp, Warning, TEXT("SuccessAttack"));
 }
 
 /*
@@ -380,11 +370,32 @@ void AGaren::Attack_Normal_Garen()
 
 
 
+공격기능(평타) 
+타겟이 정해져 있는 경우 - 마우스 우클릭
+	- 해당 타겟이 공격 거리 안에 있다면 공격한다.-> AttackRange과 충돌 중이라면 상태를 Attack으로 전환한다. 
+		- 해당 타겟이 살아있으면서 공격 거리를 이탈했다면 해당 타겟을 쫓아간다. 
+	- 해당 타겟이 공격 거리 안에 없다면 해당 타겟으로 이동한다.
+		- 만약 타겟이 공격 거리 안에 들어왔다면 이동을 멈추고 공격을 한다. 
 
 
 
+타겟이 정해져 있지 않은 경우
+	- 캐릭터가 IDLE상태일 때, 적이 공격 거리 안에 들어온 경우, 타겟으로 삼고 공격을 한다. 
 
 */
 
+void AGaren::Damaged()
+{
+	// 피격시 가렌의 체력이 남아있을 때
+}
+
+void AGaren::Die()
+{	
+	// 피격시 가렌의 체력이 0이하 일 때
+	GarenAnim->PlayANM_Dead();
+	GarenState = EGarenState::DEAD;
 
 
+	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
+
+}
