@@ -11,6 +11,7 @@
 #include "NetworkMessage.h"
 #include "AnimInstance/MinionAnimInstance.h"
 #include "Component/StateComponentBase.h"
+#include "Enemy/EnemyProjectile.h"
 
 #include "Widget/InGame/HealthBarWidgetBase.h"
 
@@ -82,8 +83,25 @@ void AMinionBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (AnimInstance->IsAnyMontagePlaying()) return;
+	// TArray<FOverlapResult> OutOverlaps;
+	// FCollisionObjectQueryParams ObjectQueryParams;
+	// ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+	//
+	// NeighborActorArray.Empty();
+	// if (GetWorld()->OverlapMultiByObjectType(OutOverlaps, GetActorLocation(), GetActorRotation().Quaternion(), ObjectQueryParams,
+	// 	FCollisionShape::MakeSphere(SeparationDistance)))
+	// {
+	// 	for (auto Iter : OutOverlaps)
+	// 	{
+	// 		if (Iter.GetActor() == this) continue;
+	//
+	// 		NeighborActorArray.Add(Iter.GetActor());
+	// 	}
+	// }
 
+	if (bIsAttacking == true) return;
+
+	FVector TargetVector;
 	if (Target != nullptr)
 	{
 		if (TargetStateComponent->IsDead())
@@ -91,18 +109,16 @@ void AMinionBase::Tick(float DeltaTime)
 			Target = nullptr;
 			return;
 		}
-		// Rotate To Target
-		FVector Direction = Target->GetActorLocation() - GetActorLocation();
-		Direction.Z = 0.f;
-		TargetDistance = Direction.Length();
-		SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+		TargetVector = Target->GetActorLocation() - GetActorLocation();
+		TargetVector.Z = 0.f;
+		TargetDistance = TargetVector.Length();
 	}
 	else
 	{
 		// Target is nullptr
 		FindTarget();
 	}
-
+	
 	switch (EnemyState) {
 	case EEnemyState::IDLE:
 		if (Target != nullptr)
@@ -122,6 +138,18 @@ void AMinionBase::Tick(float DeltaTime)
 		{
 			if (TargetDistance > AttackDistance)
 			{
+				TargetVector.Normalize();
+				if (NeighborActorArray.Num() > 0)
+				{
+					// DrawDebugSphere(GetWorld(), GetActorLocation(), SeparationDistance, 20, FColor::Yellow);
+					FVector SeparationVector = Separation() * SeparationWeight;
+				
+					
+					TargetVector += SeparationVector;
+					TargetVector.Normalize();
+				}
+				SetActorRotation(FMath::Lerp(GetActorRotation(), FRotationMatrix::MakeFromX(TargetVector).Rotator(), DeltaTime * 5.f));
+				
 				AddActorWorldOffset(GetActorForwardVector() * MoveSpeed * DeltaTime, true);
 			}
 			else
@@ -143,7 +171,12 @@ void AMinionBase::Tick(float DeltaTime)
 			}
 			else
 			{
-				MultiRPC_PlayAttackMontage();
+				if (bIsAttacking == false)
+				{
+					bIsAttacking = true;
+					SetActorRotation(FRotationMatrix::MakeFromX(TargetVector).Rotator());
+					MultiRPC_PlayAttackMontage();
+				}
 			}
 		}
 		else
@@ -206,27 +239,66 @@ void AMinionBase::OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedCom
 	}
 }
 
-void AMinionBase::Separation()
+FVector AMinionBase::Separation()
 {
-}
-
-void AMinionBase::Alignment()
-{
-}
-
-void AMinionBase::Cohesion()
-{
-	FVector Average;
-	for (AActor* Iter : NeighborActorArray)
+	FVector SeparationVector = FVector::ZeroVector;
+	int32 Count = 0;
+	for (auto Iter : NeighborActorArray)
 	{
-		Average += Iter->GetActorLocation();
+		FVector Direction = GetActorLocation() - Iter->GetActorLocation();
+		Direction.Z = 0.f;
+		float Distance = Direction.Length();
+		
+		if (Distance > SeparationDistance) continue;
+		Count++;
+		Direction /= Distance;
+		SeparationVector += Direction;
 	}
 
-	Average /= NeighborActorArray.Num();
+	if (Count > 0)
+	{
+		SeparationVector /= Count;
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + (SeparationVector * 500.f), FColor::Cyan, false, -1, 0, 3.f);
+	}
 
-	FVector CohesionVector = Average - GetActorLocation();
+	return SeparationVector;
+}
 
-	// FMath::Lerp(GetActorForwardVector(), CohesionVector, 0.5f);
+FVector AMinionBase::Alignment()
+{
+	FVector AlignmentVector = GetActorForwardVector();
+	
+	if (NeighborActorArray.Num() > 0)
+	{
+		for (auto Iter : NeighborActorArray)
+		{
+			AlignmentVector += Iter->GetActorForwardVector();
+		}
+		
+		AlignmentVector /= NeighborActorArray.Num();
+		AlignmentVector.Normalize();
+	}
+
+	return AlignmentVector;
+}
+
+FVector AMinionBase::Cohesion()
+{
+	FVector CohesionVector = FVector::ZeroVector;
+
+	if (NeighborActorArray.Num() > 0)
+	{
+		for (auto Iter : NeighborActorArray)
+		{
+			CohesionVector += Iter->GetActorLocation();
+		}
+
+		CohesionVector /= NeighborActorArray.Num();
+		CohesionVector -= GetActorLocation();
+		CohesionVector.Normalize();
+	}
+
+	return CohesionVector;
 }
 
 void AMinionBase::TestDamageFunction()
@@ -266,9 +338,28 @@ bool AMinionBase::IsActivated()
 void AMinionBase::Attack()
 {
 	if (HasAuthority() == false) return;
+	
+	// 근거리
+	if (EnemyProjectileClass == nullptr)
+	{
+		UE_LOG(LogTemp,Warning, TEXT("AMinionBase::Attack) Has State Comp"));
+		TargetStateComponent->ApplyDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
+	}
+	// 원거리
+	else
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FVector SocketLocation = SkeletalMeshComponent->GetSocketLocation(TEXT("ProjectileSocket"));
+		AEnemyProjectile* Projectile = GetWorld()->SpawnActor<AEnemyProjectile>(EnemyProjectileClass, SocketLocation, GetActorRotation(), SpawnParameters);
+		Projectile->SetDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
+		Projectile->SetTarget(Target);
+	}
+}
 
-	UE_LOG(LogTemp,Warning, TEXT("AMinionBase::Attack) Has State Comp"));
-	TargetStateComponent->ApplyDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
+void AMinionBase::EndAttack()
+{
+	bIsAttacking = false;
 }
 
 void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)

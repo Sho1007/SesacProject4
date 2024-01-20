@@ -64,11 +64,11 @@ protected:
 
 	// ObjectPool
 	bool bSuperMinionSpawned = false;
-	UPROPERTY(EditDefaultsOnly, Category = "ObjectPool")
+	UPROPERTY(EditAnywhere, Category = "ObjectPool")
 	int32 MeleeMinionPoolCount = 100;
-	UPROPERTY(EditDefaultsOnly, Category = "ObjectPool")
+	UPROPERTY(EditAnywhere, Category = "ObjectPool")
 	int32 CasterMinionPoolCount = 100;
-	UPROPERTY(EditDefaultsOnly, Category = "ObjectPool")
+	UPROPERTY(EditAnywhere, Category = "ObjectPool")
 	int32 SiegeMinionPoolCount = 34;
 	
 	UPROPERTY(VisibleInstanceOnly)

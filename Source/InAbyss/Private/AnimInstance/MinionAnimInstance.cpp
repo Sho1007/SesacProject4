@@ -31,9 +31,11 @@ void UMinionAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UMinionAnimInstance::PlayAttackMontage()
 {
-	if (AttackMontage == nullptr || IsAnyMontagePlaying()) return;
+	if (AttackMontageArray.Num() == 0) return;
 	
-	Montage_Play(AttackMontage);
+	Montage_Play(AttackMontageArray[AttackMontageIndex]);
+
+	AttackMontageIndex = (AttackMontageIndex + 1) % AttackMontageArray.Num(); 
 }
 
 void UMinionAnimInstance::PlayDeathMontage()
@@ -55,5 +57,12 @@ void UMinionAnimInstance::AnimNotify_OnDeathFinished()
 void UMinionAnimInstance::AnimNotify_Attack()
 {
 	if (GetOwningActor()->HasAuthority() == false) return;
+
 	Owner->Attack();
+}
+
+void UMinionAnimInstance::AnimNotify_EndAttack()
+{
+	if (GetOwningActor()->HasAuthority() == false) return;
+	Owner->EndAttack();
 }
