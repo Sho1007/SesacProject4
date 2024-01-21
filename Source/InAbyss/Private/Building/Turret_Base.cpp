@@ -178,33 +178,7 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	}
 
 
-	// test ==================================================================================================
-	// 포탑에 접근한 액터를 배열에 저장 -> 충돌한 액터를 배열에 저장 
-
-	/*
-	// 임시 : 발사체는 배열에 저장하지 않음 - 이건 나중에 배열을 미니언, 챔피언만 인식하도록 하면 필요 없음
-	if (OtherActor->IsA<AProjectile_Turret>()) { // 임시
-		return;
-	}
-
-	if (OtherActor->IsA<AMinionBase>()) {
-		DetectTargets_MinionBase_Test.Add(OtherActor);
-
-	}
-	else if (OtherActor->IsA<ACharacter>()) { // 캐릭터를 감지한 경우
-		DetectTargets_Chracter_Test.Add(OtherActor);
-
-	}
-	else {
-		// 감지된 액터가 아무 조건에 해당하지 않을 경우 함수 종료
-		return;
-	}
-	*/
-
-	// 범위에 들어온 대상을 공격대상 배열에 넣음
-	//DetectTargets_Test.Add(OtherActor);
-
-	/* &&&&&&&&&&&&&&&&&로그
+	/* 로그
 	// 배열의 인덱스 값을 출력하는 로그
 	for (AActor* Actor : DetectTargets_Test)
 	{
@@ -215,40 +189,6 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 		}
 	}
 	*/
-
-	/*
-	// CurrentTarget가 없는 경우, 배열의 0번 인덱스 = 가장 먼저 접근한 액터를 CurrentTarget에 저장 -> 공격대상으로 삼음
-	if (CurrentTarget == nullptr) {
-
-		if (DetectTargets_MinionBase_Test.Num() > 0) {
-			CurrentTarget = DetectTargets_MinionBase_Test[0];
-		}
-		else if (DetectTargets_Chracter_Test.Num() > 0) {
-			CurrentTarget = DetectTargets_Chracter_Test[0];
-
-		}
-
-
-
-
-		//CurrentTarget = DetectTargets_Test[0];
-
-
-
-		if (CurrentTarget) {
-			Attact_SpawnProjectile(); // 타겟이 지정되면 곧바로 1회 공격
-
-		}
-
-		//UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
-
-
-	}
-
-	// test ==================================================================================================
-	*/
-
-
 
 
 	// 포탑의 콜리전과 충돌하는 액터를 배열에 저장한다. 

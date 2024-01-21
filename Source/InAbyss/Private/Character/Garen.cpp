@@ -35,12 +35,10 @@ AGaren::AGaren()
 	CameraComp->SetupAttachment(SpringArmComp);
 	CameraComp->FieldOfView = 55.f;
 
-	/*
 	// 공격 범위 콜리전
 	AttackRange = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRange"));
 	AttackRange->SetupAttachment(RootComponent);
 	AttackRange->SetSphereRadius(180);
-	*/
 
 }
 
@@ -83,33 +81,64 @@ void AGaren::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/*
 	if (GarenState == EGarenState::MOVE) {
 
 		// 가렌 Location -----------------------------------------------------------
-		Move_Garen();
+		//Move_Garen();
 		
 		// 가렌 Rotation -----------------------------------------------------------
-		Turn_Garen();
+		//Turn_Garen();
 
-		// 로그
-		/*
-		UE_LOG(LogTemp, Warning, TEXT("CurrentRotation: %s"), *CurrentRotation.ToString());
 
-		UE_LOG(LogTemp, Warning, TEXT("GetActorRotation: %s"), *GetActorRotation().ToString());
 
-		UE_LOG(LogTemp, Warning, TEXT("NewRotation: %s"), *TurnRotation.ToString());
-		*/
+
 	}
 	else
 	{
 		// 가렌 Rotation -----------------------------------------------------------
-		Turn_Garen();
+		//Turn_Garen();
 
 	}
+	*/
 
+	/* 로그
+	UE_LOG(LogTemp, Warning, TEXT("CurrentRotation: %s"), *CurrentRotation.ToString());
 
+	UE_LOG(LogTemp, Warning, TEXT("GetActorRotation: %s"), *GetActorRotation().ToString());
 
+	UE_LOG(LogTemp, Warning, TEXT("NewRotation: %s"), *TurnRotation.ToString());
+	*/
 
+	switch (GarenState)
+	{
+	case EGarenState::IDLE:
+		
+		//GarenAnim->PlayANM_Idle();
+
+		Turn_Garen();
+		break;
+	case EGarenState::MOVE:
+
+		//GarenAnim->PlayANM_Move();
+		Move_Garen();
+
+		Turn_Garen();
+		break;
+	case EGarenState::ATTACK:
+
+		GarenAnim->PlayANM_Attack();
+
+		Turn_Garen();
+
+		break;
+	/*case EGarenState::DEAD:
+
+		GarenAnim->PlayANM_Dead();
+
+		Turn_Garen();
+		break;*/
+	}
 
 
 }
@@ -130,36 +159,42 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(Mouse_Left_Action, ETriggerEvent::Started, this, &AGaren::MouseLeftClick);
 
 		// 키보드 Q 입력
-
+		EnhancedInputComponent->BindAction(Q_Action, ETriggerEvent::Started, this, &AGaren::KeyBoard_Q);
 
 		// 키보드 W 입력
-
+		EnhancedInputComponent->BindAction(W_Action, ETriggerEvent::Started, this, &AGaren::KeyBoard_W);
 
 		// 키보드 E 입력
-
+		EnhancedInputComponent->BindAction(E_Action, ETriggerEvent::Started, this, &AGaren::KeyBoard_E);
 
 		// 키보드 R 입력
-
+		EnhancedInputComponent->BindAction(R_Action, ETriggerEvent::Started, this, &AGaren::KeyBoard_R);
 
 		// 키보드 SpaceBar 입력
+		EnhancedInputComponent->BindAction(SpaceBar_Action, ETriggerEvent::Started, this, &AGaren::KeyBoard_SpaceBar);
 
+	}
+
+}
+
+void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	if (Target_Minion || Target_Champion || Target_Building) {
+		return;
+	}
+
+	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
+		// 해당 OtherActor를 공격하도록 함
+		// 배열에 저장해야 할 듯
 
 	}
 
 
 }
 
-void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
-{
-	
-
-
-}
-
 void AGaren::NotifyActorEndOverlap(AActor* OtherActor)
 {
-
-	// 공격 범위에서 공격대상이 벗어난 경우, 공격
+	// 공격 범위에서 공격대상이 벗어난 경우, 공격대상을 따라감 - 미니언, 챔피언 불문
 
 }
 
@@ -172,6 +207,9 @@ EGarenState AGaren::GetGarenState() const
 void AGaren::MouseRightClick(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Right"));
+
+	GarenAnim->StopAllMontages(0.f);
+	GarenAnim->AnimNotify_EndAttack_Garen(); // 다시 공격할 수 있도록 초기화
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
@@ -189,6 +227,11 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	if (Target_Building) { 
 		Target_Building = nullptr;
 	}
+	
+	// 클린된 액터가 있다면 삭제
+	/*if (MouseHitActor) {
+		MouseHitActor = nullptr;
+	}*/
 
 	// 마우스로 클릭한 위치의 정보를 담기 위한 기능
 	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
@@ -198,6 +241,7 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 
 		// 클릭한 위치의 액터를 저장 - 없다면 저장되지 않을 것
 		MouseHitActor = HitInfo.GetActor();
+		//UE_LOG(LogTemp, Warning, TEXT("MouseHitActor : %s"), *MouseHitActor->GetName());
 
 		/* //클릭한 위치 값을 가져오는 로그 // 저장된 액터의 정보를 가져오는 로그
 		UE_LOG(LogTemp, Warning, TEXT("CursorPlace: %s"), *CursorPlace.ToString());
@@ -245,15 +289,17 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 
 	}
 
-	// 위치 값이 자신과 다르다면 
-	if (CursorPlace != GetActorLocation()) {
+	// 목표 위치 값과의 거리가 멀면
+	if (MouseHitActor && FVector::Dist(this->GetActorLocation(), MouseHitActor->GetActorLocation()) > 0) {
 
 		GarenState = EGarenState::MOVE;
 
 	}
+	else
+	{
+		GarenState = EGarenState::IDLE;
 
-	// 클린된 액터 삭제
-	MouseHitActor = nullptr;
+	}
 
 	// 이동 함수 호출
 	UE_LOG(LogTemp, Warning, TEXT("==========================================="));
@@ -275,6 +321,36 @@ void AGaren::MouseLeftClick(const FInputActionValue& value)
 
 }
 
+void AGaren::KeyBoard_Q(const FInputActionValue& value)
+{
+	//GarenAnim->bIsSkill_Q = true;
+
+	UE_LOG(LogTemp,Warning, TEXT("Success Call"));
+	GarenAnim->PlayANM_Q();
+}
+
+void AGaren::KeyBoard_W(const FInputActionValue& value)
+{
+}
+
+void AGaren::KeyBoard_E(const FInputActionValue& value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Success Call"));
+
+	GarenAnim->PlayANM_E();
+}
+
+void AGaren::KeyBoard_R(const FInputActionValue& value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Success Call"));
+
+	GarenAnim->PlayANM_R();
+}
+
+void AGaren::KeyBoard_SpaceBar(const FInputActionValue& value)
+{
+}
+
 void AGaren::Move_Garen() // 가렌의 이동
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Move_Success"));
@@ -292,19 +368,18 @@ void AGaren::Move_Garen() // 가렌의 이동
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
 
-	// 지정된 타겟이 있을 경우
+	// 지정된 타겟이 있을 경우, 거리 안에 들어오면 Attack으로 전환
 	if (Target_Minion) {
 		//오차범위 10 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Minion->GetActorLocation()) <= 200) {
+		if (FVector::Dist(ActorLocatoin, Target_Minion->GetActorLocation()) <= 250) {
 			GarenState = EGarenState::ATTACK;
-			GarenAnim->PlayANM_Attack();
 		}
 		return;
 
 	}
 	else if (Target_Champion) {
 		//오차범위 10 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Champion->GetActorLocation()) <= 200) {
+		if (FVector::Dist(ActorLocatoin, Target_Champion->GetActorLocation()) <= 250) {
 			GarenState = EGarenState::ATTACK;
 		}
 		return;
@@ -312,7 +387,7 @@ void AGaren::Move_Garen() // 가렌의 이동
 	}
 	else if (Target_Building) {
 		//오차범위 10 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Building->GetActorLocation()) <= 200) {
+		if (FVector::Dist(ActorLocatoin, Target_Building->GetActorLocation()) <= 250) {
 			GarenState = EGarenState::ATTACK;
 		}
 		return;
@@ -353,12 +428,48 @@ void AGaren::Turn_Garen() // 가렌의 회전
 void AGaren::Attack_Normal_Garen()
 {
 	// 공격 대상이 지정되었을 때, 대상이 공격범위에 있지 않다면 대상이 있는 방향으로 대상이 들어올 때까지 이동한다.
-
 	// 공격 대상이 지정되었을 때, 대상이 공격범위에 있다면 대상을 공격한다. 
 
-	//GarenState = EGarenState::ATTACK;
+	// 지정된 타겟의 스테이터스 컴포넌트를 가져와 데미지 주는 기능
+	if (Target_Minion ) {
+		UStateComponentBase* stateComp = Target_Minion->GetComponentByClass<UStateComponentBase>();
 
-	UE_LOG(LogTemp, Warning, TEXT("SuccessAttack"));
+		stateComp->ApplyDamage(StateComp_Garen->GetAttackDamage(), StateComp_Garen->GetAbilityPower());
+
+		//UE_LOG(LogTemp, Warning, TEXT("SuccessAttack"));
+
+		
+
+		// 상대방이 죽었을 때의 상태를 알 수 있도록 해야 함 - 공격을 멈추고 state를 idle로 바꾸도록 해야 함
+		//if(Target_Minion->GetEnemyState() == )
+
+	}
+	else if (Target_Champion) {
+		UStateComponentBase* stateComp = Target_Champion->GetComponentByClass<UStateComponentBase>();
+
+		stateComp->ApplyDamage(StateComp_Garen->GetAttackDamage(), StateComp_Garen->GetAbilityPower());
+
+		//UE_LOG(LogTemp, Warning, TEXT("SuccessAttack"));
+
+
+
+		// 상대방이 죽었을 때의 상태를 알 수 있도록 해야 함 - 공격을 멈추고 state를 idle로 바꾸도록 해야 함
+		//if(Target_Minion->GetEnemyState() == )
+
+	}
+	else if (Target_Building) {
+		UStateComponentBase* stateComp = Target_Building->GetComponentByClass<UStateComponentBase>();
+
+		stateComp->ApplyDamage(StateComp_Garen->GetAttackDamage(), StateComp_Garen->GetAbilityPower());
+
+		//UE_LOG(LogTemp, Warning, TEXT("SuccessAttack"));
+
+
+
+		// 상대방이 죽었을 때의 상태를 알 수 있도록 해야 함 - 공격을 멈추고 state를 idle로 바꾸도록 해야 함
+		//if(Target_Minion->GetEnemyState() == )
+
+	}
 }
 
 /*
@@ -387,6 +498,8 @@ void AGaren::Attack_Normal_Garen()
 void AGaren::Damaged()
 {
 	// 피격시 가렌의 체력이 남아있을 때
+
+
 }
 
 void AGaren::Die()
@@ -397,5 +510,7 @@ void AGaren::Die()
 
 
 	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
+
+	// 죽고 난 후에는 마우스의 클릭에 캐릭터가 반응하지 않도록 해야 함
 
 }

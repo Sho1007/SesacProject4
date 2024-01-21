@@ -51,6 +51,22 @@ void AProjectile_Turret::Tick(float DeltaTime)
 
 		//UE_LOG(LogTemp, Warning, TEXT("Success Tick"));
 
+
+
+
+
+		/* 임시
+		if (FVector::Dist(AttackTarget->GetActorLocation(), GetActorLocation()) <= 10.f) {
+			if (UStateComponentBase* TargetStateComponent = AttackTarget->GetComponentByClass<UStateComponentBase>())
+			{
+				// 데미지 주는 기능 - ApplyDamage(물공 데미지, 마공 데미지 )
+				TargetStateComponent->ApplyDamage(ADDamage, APDamage);
+
+				Destroy();
+			}
+		}
+		*/
+
 	}
 	else {
 		Destroy();
