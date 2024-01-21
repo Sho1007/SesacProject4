@@ -107,6 +107,12 @@ public:	// 키 입력 함수
 
 	void MouseLeftClick(const FInputActionValue& value);
 
+	void KeyBoard_Q(const FInputActionValue& value);
+	void KeyBoard_W(const FInputActionValue& value);
+	void KeyBoard_E(const FInputActionValue& value);
+	void KeyBoard_R(const FInputActionValue& value);
+
+	void KeyBoard_SpaceBar(const FInputActionValue& value);
 
 public: // 이동기능
 	FHitResult HitInfo;
