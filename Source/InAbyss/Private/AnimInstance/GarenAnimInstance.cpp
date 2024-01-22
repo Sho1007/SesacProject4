@@ -63,8 +63,8 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 
 	*/
 
-	UE_LOG(LogTemp, Warning, TEXT("bIsSkilling_Q is: %d"), bIsSkilling_Q);
-	UE_LOG(LogTemp, Warning, TEXT("bIsSkill_Q is: %d"), bIsSkill_Q );
+	//UE_LOG(LogTemp, Warning, TEXT("bIsSkilling_Q is: %d"), bIsSkilling_Q);
+	//UE_LOG(LogTemp, Warning, TEXT("bIsSkill_Q is: %d"), bIsSkill_Q );
 
 
 }
@@ -151,7 +151,16 @@ void UGarenAnimInstance::PlayANM_R()
 {
 
 	if (ANM_Skill_R) {
-		Montage_Play(ANM_Skill_R);
+		
+		if (bIsSkilling_R == false) {
+			
+			bIsSkilling_R = true;
+
+			Montage_Play(ANM_Skill_R);
+		
+		
+		}
+
 
 	}
 }
@@ -190,5 +199,20 @@ void UGarenAnimInstance::AnimNotify_EndSkill_Q()
 	bIsSkilling_Q = false; // 스킬 사용 중 끄기
 	bIsQMove_Garen = false; // Q이동 끄기
 	AnimNotify_EndAttack_Garen();
+
+	Owner->Speed = 300;
+}
+
+void UGarenAnimInstance::AnimNotify_Skill_R()
+{
+	// 지정한 대상에게 데미지 - 적 챔피언 한정
+
+
+}
+
+void UGarenAnimInstance::AnimNotify_EndSkill_R()
+{
+	
+	bIsSkilling_R = false; // 
 
 }

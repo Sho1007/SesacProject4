@@ -44,6 +44,9 @@ AGaren::AGaren()
 	// 이펙트 컴포넌트
 	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
 	NSComp->SetupAttachment(RootComponent);
+	NSComp->SetRelativeScale3D(FVector(2, 2, 2.5f));
+
+
 
 }
 
@@ -104,7 +107,7 @@ void AGaren::Tick(float DeltaTime)
 
 		break;
 	case EGarenState::MOVE:
-		
+
 		//GarenAnim->PlayANM_Move();
 		Move_Garen();
 
@@ -181,14 +184,16 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	
+
 	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
 		// 공격 범위에 들어온 액터를 배열에 저장
 		Targets_Attack.Add(OtherActor);
-		
+
 		// 해당 OtherActor를 공격하도록 함
 
-		
+		for (AActor* Target : Targets_Attack) {
+			UE_LOG(LogTemp, Warning, TEXT("Begin : Target Actor: %s"), *Target->GetName());
+		}
 
 	}
 
@@ -205,7 +210,9 @@ void AGaren::NotifyActorEndOverlap(AActor* OtherActor)
 		// 배열에서 삭제
 		Targets_Attack.Remove(OtherActor);
 
-
+		for (AActor* Target : Targets_Attack) {
+			UE_LOG(LogTemp, Warning, TEXT("End : Target Actor: %s"), *Target->GetName());
+		}
 
 	}
 
@@ -232,7 +239,7 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	GarenAnim->StopAllMontages(0.f);
 	GarenAnim->AnimNotify_EndAttack_Garen(); // 다시 공격할 수 있도록 초기화
 
-	
+
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
@@ -353,6 +360,8 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 
 	GarenAnim->bIsQMove_Garen = true;
 
+	Speed = Speed * 1.5;
+
 	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
 
 
@@ -361,6 +370,7 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 
 void AGaren::KeyBoard_W(const FInputActionValue& value)
 {
+	//NSComp->SetVisibility(true);
 
 }
 
@@ -372,8 +382,18 @@ void AGaren::KeyBoard_E(const FInputActionValue& value)
 
 void AGaren::KeyBoard_R(const FInputActionValue& value)
 {
+	//SetActorLocation(GetActorLocation());
+
+	// 적 챔피언이 타겟팅 되었을 때
+	/*if (!Target_Champion) {
+		return;
+	}*/
 
 	GarenAnim->PlayANM_R();
+
+	
+	// 적 챔피언이 공격 범위 안에 있고, 적 챔피언을 클릭하면
+	// 적 챔피언이 공격 대상이 되고, 데미지를 입힌다. 
 }
 
 void AGaren::KeyBoard_SpaceBar(const FInputActionValue& value)
@@ -385,14 +405,22 @@ void AGaren::Move_Garen() // 가렌의 이동
 	//UE_LOG(LogTemp, Warning, TEXT("Move_Success"));
 
 	// 지정된 위치로 이동한다. 
+	
 
-	float Speed = 300;
 
 	// 캐릭터의 현재 위치를 저장
 	FVector ActorLocatoin = GetActorLocation();
 	ActorLocatoin.Z = 0.f;
 	// 지정된 위치의 방향을 설정
 	FVector Direction = (CursorPlace - ActorLocatoin).GetSafeNormal();
+
+	if (GarenAnim->bIsSkilling_R == true) { //  R스킬 쓰는 중이라면 클릭 안됨
+
+		return;
+	}
+	
+
+	
 
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());

@@ -124,6 +124,7 @@ public: // 이동기능
 	FHitResult HitInfo;
 	FVector CursorPlace;
 	AActor* MouseHitActor;
+	float Speed = 300;
 
 	void Move_Garen();
 	void Turn_Garen();
@@ -144,6 +145,7 @@ public: // 일반 공격기능
 	class ABuilding_Base* Target_Building;
 
 	// 특정 스킬에서 다수의 대상을 공격하는 경우
+	UPROPERTY(VisibleAnywhere)
 	TArray<AActor*> Targets_Attack;
 
 
