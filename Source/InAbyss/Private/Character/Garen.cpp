@@ -12,6 +12,7 @@
 #include "Enemy/MinionBase.h"
 #include "Building/Building_Base.h"
 #include "AnimInstance/GarenAnimInstance.h"
+#include "NiagaraComponent.h"
 
 
 // Sets default values
