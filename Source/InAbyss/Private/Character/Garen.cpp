@@ -67,7 +67,7 @@ void AGaren::BeginPlay()
 
 	GarenAnim = Cast<UGarenAnimInstance>(this->GetMesh()->GetAnimInstance());
 	check(GarenAnim);
-	
+
 	/* // UI부분
 	if (UHealthBarWidgetBase* HealthBarWidget = Cast<UHealthBarWidgetBase>(HealthBarWidgetComponent->GetWidget()))
 	{
@@ -81,27 +81,6 @@ void AGaren::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*
-	if (GarenState == EGarenState::MOVE) {
-
-		// 가렌 Location -----------------------------------------------------------
-		//Move_Garen();
-		
-		// 가렌 Rotation -----------------------------------------------------------
-		//Turn_Garen();
-
-
-
-
-	}
-	else
-	{
-		// 가렌 Rotation -----------------------------------------------------------
-		//Turn_Garen();
-
-	}
-	*/
-
 	/* 로그
 	UE_LOG(LogTemp, Warning, TEXT("CurrentRotation: %s"), *CurrentRotation.ToString());
 
@@ -113,33 +92,51 @@ void AGaren::Tick(float DeltaTime)
 	switch (GarenState)
 	{
 	case EGarenState::IDLE:
-		
+
 		//GarenAnim->PlayANM_Idle();
 
-		Turn_Garen();
+		// 공격 범위 안에 적이 들어오면 공격으로 전환
+
 		break;
 	case EGarenState::MOVE:
-
+		
 		//GarenAnim->PlayANM_Move();
 		Move_Garen();
 
-		Turn_Garen();
+		// 지정된 타겟이 있을 경우, 거리 안에 들어오면 Attack으로 전환
+		if (Target_Minion && GarenState != EGarenState::ATTACK) {
+			//오차범위 이내이면 상태를 ATTACK로 전환
+			if (FVector::Dist(this->GetActorLocation(), Target_Minion->GetActorLocation()) <= 250) {
+				GarenState = EGarenState::ATTACK;
+			}
+
+		}
+		else if (Target_Champion) {
+			//오차범위 10 이내이면 상태를 ATTACK로 전환
+			if (FVector::Dist(this->GetActorLocation(), Target_Champion->GetActorLocation()) <= 250) {
+				GarenState = EGarenState::ATTACK;
+			}
+
+		}
+		else if (Target_Building) {
+			//오차범위 10 이내이면 상태를 ATTACK로 전환
+			if (FVector::Dist(this->GetActorLocation(), Target_Building->GetActorLocation()) <= 400) {
+				GarenState = EGarenState::ATTACK;
+			}
+
+		}
+
 		break;
 	case EGarenState::ATTACK:
 
 		GarenAnim->PlayANM_Attack();
 
-		Turn_Garen();
+		// 지정된 적이 공격 범위 밖으로 나가면 적을 쫓아감 - move로 전환
 
 		break;
-	/*case EGarenState::DEAD:
-
-		GarenAnim->PlayANM_Dead();
-
-		Turn_Garen();
-		break;*/
 	}
 
+	Turn_Garen();
 
 }
 
@@ -179,13 +176,17 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 {
+	/*
 	if (Target_Minion || Target_Champion || Target_Building) {
 		return;
 	}
+	*/
 
 	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
 		// 해당 OtherActor를 공격하도록 함
 		// 배열에 저장해야 할 듯
+
+
 
 	}
 
@@ -224,10 +225,10 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	if (Target_Champion) {
 		Target_Champion = nullptr;
 	}
-	if (Target_Building) { 
+	if (Target_Building) {
 		Target_Building = nullptr;
 	}
-	
+
 	// 클린된 액터가 있다면 삭제
 	/*if (MouseHitActor) {
 		MouseHitActor = nullptr;
@@ -285,6 +286,7 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 				UE_LOG(LogTemp, Warning, TEXT("Target_Building : %s"), *Target_Building->GetName());
 
 			}
+
 		}
 
 	}
@@ -302,13 +304,13 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	}
 
 	// 이동 함수 호출
-	UE_LOG(LogTemp, Warning, TEXT("==========================================="));
+	//UE_LOG(LogTemp, Warning, TEXT("==========================================="));
 
 }
 
 void AGaren::MouseRightClick_Triggered(const FInputActionValue& value)
 {
-	
+
 
 
 }
@@ -323,26 +325,31 @@ void AGaren::MouseLeftClick(const FInputActionValue& value)
 
 void AGaren::KeyBoard_Q(const FInputActionValue& value)
 {
-	//GarenAnim->bIsSkill_Q = true;
+	GarenAnim->bIsSkill_Q = true;
 
-	UE_LOG(LogTemp,Warning, TEXT("Success Call"));
-	GarenAnim->PlayANM_Q();
+	// q를 누르면 먼저하던 일반 공격 애니메이션을 취소하고 q애니매이션을 호출함
+
+
+
+	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
+
+
+
 }
 
 void AGaren::KeyBoard_W(const FInputActionValue& value)
 {
+
 }
 
 void AGaren::KeyBoard_E(const FInputActionValue& value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Success Call"));
 
 	GarenAnim->PlayANM_E();
 }
 
 void AGaren::KeyBoard_R(const FInputActionValue& value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Success Call"));
 
 	GarenAnim->PlayANM_R();
 }
@@ -368,9 +375,10 @@ void AGaren::Move_Garen() // 가렌의 이동
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
 
+	/*
 	// 지정된 타겟이 있을 경우, 거리 안에 들어오면 Attack으로 전환
 	if (Target_Minion) {
-		//오차범위 10 이내이면 상태를 ATTACK로 전환
+		//오차범위 이내이면 상태를 ATTACK로 전환
 		if (FVector::Dist(ActorLocatoin, Target_Minion->GetActorLocation()) <= 250) {
 			GarenState = EGarenState::ATTACK;
 		}
@@ -387,12 +395,13 @@ void AGaren::Move_Garen() // 가렌의 이동
 	}
 	else if (Target_Building) {
 		//오차범위 10 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Building->GetActorLocation()) <= 250) {
+		if (FVector::Dist(ActorLocatoin, Target_Building->GetActorLocation()) <= 400) {
 			GarenState = EGarenState::ATTACK;
 		}
 		return;
 
 	}
+	*/
 
 	// 지정한 위치 도착시, 오차범위 10 이내이면 상태를 IDLE로 전환
 	if (FVector::Dist(ActorLocatoin, CursorPlace) <= 10) {
@@ -431,14 +440,14 @@ void AGaren::Attack_Normal_Garen()
 	// 공격 대상이 지정되었을 때, 대상이 공격범위에 있다면 대상을 공격한다. 
 
 	// 지정된 타겟의 스테이터스 컴포넌트를 가져와 데미지 주는 기능
-	if (Target_Minion ) {
+	if (Target_Minion) {
 		UStateComponentBase* stateComp = Target_Minion->GetComponentByClass<UStateComponentBase>();
 
 		stateComp->ApplyDamage(StateComp_Garen->GetAttackDamage(), StateComp_Garen->GetAbilityPower());
 
 		//UE_LOG(LogTemp, Warning, TEXT("SuccessAttack"));
 
-		
+
 
 		// 상대방이 죽었을 때의 상태를 알 수 있도록 해야 함 - 공격을 멈추고 state를 idle로 바꾸도록 해야 함
 		//if(Target_Minion->GetEnemyState() == )
@@ -481,17 +490,17 @@ void AGaren::Attack_Normal_Garen()
 
 
 
-공격기능(평타) 
+공격기능(평타)
 타겟이 정해져 있는 경우 - 마우스 우클릭
-	- 해당 타겟이 공격 거리 안에 있다면 공격한다.-> AttackRange과 충돌 중이라면 상태를 Attack으로 전환한다. 
-		- 해당 타겟이 살아있으면서 공격 거리를 이탈했다면 해당 타겟을 쫓아간다. 
+	- 해당 타겟이 공격 거리 안에 있다면 공격한다.-> AttackRange과 충돌 중이라면 상태를 Attack으로 전환한다.
+		- 해당 타겟이 살아있으면서 공격 거리를 이탈했다면 해당 타겟을 쫓아간다.
 	- 해당 타겟이 공격 거리 안에 없다면 해당 타겟으로 이동한다.
-		- 만약 타겟이 공격 거리 안에 들어왔다면 이동을 멈추고 공격을 한다. 
+		- 만약 타겟이 공격 거리 안에 들어왔다면 이동을 멈추고 공격을 한다.
 
 
 
 타겟이 정해져 있지 않은 경우
-	- 캐릭터가 IDLE상태일 때, 적이 공격 거리 안에 들어온 경우, 타겟으로 삼고 공격을 한다. 
+	- 캐릭터가 IDLE상태일 때, 적이 공격 거리 안에 들어온 경우, 타겟으로 삼고 공격을 한다.
 
 */
 
@@ -503,7 +512,7 @@ void AGaren::Damaged()
 }
 
 void AGaren::Die()
-{	
+{
 	// 피격시 가렌의 체력이 0이하 일 때
 	GarenAnim->PlayANM_Dead();
 	GarenState = EGarenState::DEAD;
