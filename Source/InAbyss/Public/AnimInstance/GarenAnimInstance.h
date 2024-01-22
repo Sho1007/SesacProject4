@@ -18,7 +18,7 @@ public:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 		
-protected:
+public:
 	// Player
 	UPROPERTY()
 	class AGaren* Owner;
@@ -38,6 +38,12 @@ protected:
 	// 죽음 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsDead_Garen = false;
+
+
+	// Q 이동 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsQMove_Garen = false;
+
 
 public: // 몽타주 저장할 변수
 	UPROPERTY(EditDefaultsOnly)

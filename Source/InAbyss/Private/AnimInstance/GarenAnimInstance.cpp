@@ -187,6 +187,8 @@ void UGarenAnimInstance::AnimNotify_EndSkill_Q()
 {
 	// Q 공격 애니메이션이 종료되면 이전에 진행 중이던 공격 애니메이션 이어서 실행
 
-	bIsSkilling_Q = false;
+	bIsSkilling_Q = false; // 스킬 사용 중 끄기
+	bIsQMove_Garen = false; // Q이동 끄기
 	AnimNotify_EndAttack_Garen();
+
 }
