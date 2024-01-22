@@ -29,7 +29,7 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 	{
 		bIsIdle_Garen = false;
 	}
-	
+
 	// 이동
 	if (Owner && Owner->GarenState == EGarenState::MOVE) {
 		// 이동 애니메이션 
@@ -43,7 +43,7 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 	/*
 	// 공격
 	if (Owner && Owner->GarenState == EGarenState::ATTACK) {
-		// 공격 애니메이션 
+		// 공격 애니메이션
 		bIsAttack_Garen = true;
 	}
 	else
@@ -53,7 +53,7 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 
 	// 죽음
 	if (Owner && Owner->GarenState == EGarenState::DEAD) {
-		// 죽음 애니메이션 
+		// 죽음 애니메이션
 		bIsDead_Garen = true;
 	}
 	else
@@ -62,6 +62,10 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 	}
 
 	*/
+
+	UE_LOG(LogTemp, Warning, TEXT("bIsSkilling_Q is: %d"), bIsSkilling_Q);
+	UE_LOG(LogTemp, Warning, TEXT("bIsSkill_Q is: %d"), bIsSkill_Q );
+
 
 }
 // 플레이할 몽타주 함수 - 캐릭터에서 호출 ====================================================
@@ -75,35 +79,46 @@ void UGarenAnimInstance::PlayANM_Idle()
 
 void UGarenAnimInstance::PlayANM_Move()
 {
-	if(ANM_Move){
-		
+	if (ANM_Move) {
+
 		//StopAllMontages(0.f); // 실행 중이던 모든 몽타주 정지 
 		Montage_Play(ANM_Move);
 	}
 }
 
-
 void UGarenAnimInstance::PlayANM_Attack()
 {
+
 	if (ANM_Attack_Array.Num() > 0) {
 		//StopAllMontages(0.f); // 실행 중이던 모든 몽타주 정지 
+
 		
-
+		// 일반 공격 중이 아닐 때
 		if (bIsAttack_Garen == false) {
-			
-			
-			Montage_Play(ANM_Attack_Array[IndexNumber]);
-			
+
 			bIsAttack_Garen = true;
 
-			IndexNumber += 1;
+			// 스킬 활성화 // 스킬 사용 중이 아니면
+			if (bIsSkill_Q == true && bIsSkilling_Q == false) {
+
+
+				PlayANM_Q();
+
+				return;
+			}
+			else
+			{
+				Montage_Play(ANM_Attack_Array[IndexNumber]);
+
+				IndexNumber += 1;
+			}
 			
-			/*
-			bIsAttack_Garen = true;
 
-			Montage_Play(ANM_Attack);
-			*/
-
+		}
+		// 일반 공격 중일 때 // 스킬이 활성화 되있고 // 스킬 사용중이 아니라면
+		else if (bIsAttack_Garen == true && bIsSkill_Q == true && bIsSkilling_Q == false) {
+			StopAllMontages(0.f);
+			PlayANM_Q();
 		}
 
 	}
@@ -115,19 +130,30 @@ void UGarenAnimInstance::PlayANM_Dead()
 		StopAllMontages(0.f); // 실행 중이던 모든 몽타주 정지 
 		Montage_Play(ANM_Dead);
 	}
-	
+
 }
 void UGarenAnimInstance::PlayANM_Q()
 {
+	bIsSkill_Q = false;
+
+	bIsSkilling_Q = true;
+
 	Montage_Play(ANM_Skill_Q);
 }
 void UGarenAnimInstance::PlayANM_E()
 {
-	Montage_Play(ANM_Skill_E);
+
+	if (ANM_Skill_E) {
+		Montage_Play(ANM_Skill_E);
+	}
 }
 void UGarenAnimInstance::PlayANM_R()
 {
-	Montage_Play(ANM_Skill_R);
+
+	if (ANM_Skill_R) {
+		Montage_Play(ANM_Skill_R);
+
+	}
 }
 
 // 플레이할 몽타주 함수 - 캐릭터에서 호출 ====================================================
@@ -149,4 +175,18 @@ void UGarenAnimInstance::AnimNotify_EndAttack_Garen()
 
 	bIsAttack_Garen = false;
 
+}
+// ---------------------- Q ------------------------------
+void UGarenAnimInstance::AnimNotify_Skill_Q()
+{
+	Owner->Attack_Normal_Garen(); // 임시
+
+}
+
+void UGarenAnimInstance::AnimNotify_EndSkill_Q()
+{
+	// Q 공격 애니메이션이 종료되면 이전에 진행 중이던 공격 애니메이션 이어서 실행
+
+	bIsSkilling_Q = false;
+	AnimNotify_EndAttack_Garen();
 }
