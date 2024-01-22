@@ -100,6 +100,12 @@ public: // 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class USphereComponent* AttackRange;
 
+
+
+	// 나이아카라 이펙트 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UNiagaraComponent* NSComp;
+
 public:	// 키 입력 함수
 	// 마우스 오른쪽 입력
 	void MouseRightClick(const FInputActionValue& value);
@@ -138,7 +144,8 @@ public: // 일반 공격기능
 	class ABuilding_Base* Target_Building;
 
 	// 특정 스킬에서 다수의 대상을 공격하는 경우
-	TArray<AActor*> Targets_Skill;
+	TArray<AActor*> Targets_Attack;
+
 
 
 

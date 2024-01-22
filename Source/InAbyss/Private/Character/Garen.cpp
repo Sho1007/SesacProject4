@@ -40,6 +40,8 @@ AGaren::AGaren()
 	AttackRange->SetupAttachment(RootComponent);
 	AttackRange->SetSphereRadius(180);
 
+	// 이펙트 컴포넌트
+
 }
 
 // Called when the game starts or when spawned
@@ -176,19 +178,18 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	/*
-	if (Target_Minion || Target_Champion || Target_Building) {
-		return;
-	}
-	*/
-
+	
 	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
+		// 공격 범위에 들어온 액터를 배열에 저장
+		Targets_Attack.Add(OtherActor);
+		
 		// 해당 OtherActor를 공격하도록 함
-		// 배열에 저장해야 할 듯
 
-
+		
 
 	}
+
+
 
 
 }
@@ -196,6 +197,15 @@ void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 void AGaren::NotifyActorEndOverlap(AActor* OtherActor)
 {
 	// 공격 범위에서 공격대상이 벗어난 경우, 공격대상을 따라감 - 미니언, 챔피언 불문
+
+	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
+		// 배열에서 삭제
+		Targets_Attack.Remove(OtherActor);
+
+
+
+	}
+
 
 }
 
@@ -208,9 +218,18 @@ EGarenState AGaren::GetGarenState() const
 void AGaren::MouseRightClick(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Right"));
+	if (GarenAnim->bIsSkilling_Q == true) { //  Q스킬 쓰는 중이라면 클릭 안됨
+		return;
+	}
+
+	if (GarenAnim->bIsSkilling_R == true) { //  R스킬 쓰는 중이라면 클릭 안됨
+		return;
+	}
 
 	GarenAnim->StopAllMontages(0.f);
 	GarenAnim->AnimNotify_EndAttack_Garen(); // 다시 공격할 수 있도록 초기화
+
+	
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
@@ -329,7 +348,7 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 
 	// q를 누르면 먼저하던 일반 공격 애니메이션을 취소하고 q애니매이션을 호출함
 
-
+	GarenAnim->bIsQMove_Garen = true;
 
 	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
 
