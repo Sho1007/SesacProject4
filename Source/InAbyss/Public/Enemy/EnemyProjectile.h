@@ -27,7 +27,7 @@ public:
 	void SetDamage(float NewAttackDamage = 0.f, float NewAbilityPower = 0.f); 
 
 private:
-	UPROPERTY(Meta = (AllowPrivateAccess))
+	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
 	AActor* Target;
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	float HitDistance = 10.f;

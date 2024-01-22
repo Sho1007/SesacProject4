@@ -20,7 +20,7 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 private:
 	UPROPERTY(BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	float Speed;
+	bool bIsMove;
 	UPROPERTY()
 	AEzreal* Ezreal;
 };

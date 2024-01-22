@@ -18,5 +18,5 @@ void UEzrealAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Ezreal == nullptr) return;
 
-	Speed = Ezreal->GetVelocity().Length();
+	bIsMove = Ezreal->IsMove();
 }
