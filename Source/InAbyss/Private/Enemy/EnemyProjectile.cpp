@@ -17,9 +17,13 @@ AEnemyProjectile::AEnemyProjectile()
 void AEnemyProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	SetReplicates(true);
-	SetReplicateMovement(true);
-	SetActorTickEnabled(false);
+
+	if (HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+	 SetActorTickEnabled(false);
 }
 
 // Called every frame
@@ -55,7 +59,7 @@ void AEnemyProjectile::Tick(float DeltaTime)
 
 void AEnemyProjectile::SetTarget(AActor* NewTarget)
 {
-	if (NewTarget == nullptr || NewTarget->IsValidLowLevel() == false) return;
+	// if (NewTarget == nullptr || NewTarget->IsValidLowLevel() == false) return;
 	
 	Target = NewTarget;
 

@@ -53,15 +53,14 @@ void AMinionBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetReplicates(true);
-	SetReplicateMovement(true);
-
 	if (HasAuthority() == true)
 	{
 		EnemyState = EEnemyState::IDLE;
 		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AMinionBase::OnSphereComponentBeginOverlap);
 		SphereComponent->OnComponentEndOverlap.AddDynamic(this, &AMinionBase::OnSphereComponentEndOverlap);
 		SetActorTickEnabled(true);
+		SetReplicates(true);
+		SetReplicateMovement(true);
 
 		FindTarget();
 	}

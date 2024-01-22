@@ -5,6 +5,7 @@
 
 #include "Component/StateComponentBase.h"
 #include "Enemy/MinionBase.h"
+#include "InAbyss/InAbyss.h"
 
 // Sets default values for this component's properties
 UMinionSpawnComponent::UMinionSpawnComponent()
@@ -111,6 +112,7 @@ void UMinionSpawnComponent::PrepareMinion()
 
 void UMinionSpawnComponent::SpawnMinion()
 {
+	PRINTLOG(TEXT(""));
 	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 	TimerManager.ClearTimer(SpawnMinionTimerHandle);
 
