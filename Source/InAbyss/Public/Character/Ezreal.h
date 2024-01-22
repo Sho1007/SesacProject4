@@ -6,15 +6,29 @@
 #include "Character/CharacterBase.h"
 #include "Ezreal.generated.h"
 
+class UFSMComponent;
 class UStateComponentBase;
 class UCameraComponent;
 class USpringArmComponent;
 struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
+class UEzrealAnimInstance;
 /**
  * 
  */
+UENUM()
+enum class EChampionState : uint8
+{
+	NON,
+	IDLE,
+	ROTATE,
+	MOVE,
+	ATTACK,
+	SKILL,
+	MAX
+};
+
 UCLASS()
 class INABYSS_API AEzreal : public ACharacterBase
 {
@@ -28,55 +42,37 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION()
-	void Rotate();
-
-
-	UFUNCTION(Server, Reliable)
-	void ServerRPC_RightClickStarted(FVector WorldOrigin, FVector WorldDirection);
 	
-	UFUNCTION()
-	void RightClickStarted(const FInputActionValue& Value);
 
-	// Getter
-	bool IsMove() const;
-
-	// OnRep
 	UFUNCTION()
-	void OnRep_ActorRotation();
+	void QStarted(const FInputActionValue& Value);
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_Q();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_Q();
+
+	
+	
 private:
-	// Rotation
-	UPROPERTY(ReplicatedUsing = "OnRep_ActorRotation", Meta = (AllowPrivateAccess))
-	FRotator ActorRotation;
-	// Move
-	FVector Destination;
-	UPROPERTY(EditDefaultsOnly, Category = "Move", Meta = (AllowPrivateAccess))
-	float MoveSpeed = 300.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Move", Meta = (AllowPrivateAccess))
-	float ReachSuccessDistance = 10.f;
-	UPROPERTY(Replicated, Meta = (AllowPrivateAccess))
-	bool bIsMove = false;
+	// Animation
+	UEzrealAnimInstance* AnimInstance;
 	
 	// Component
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UFSMComponent* FSMComponent;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UStateComponentBase* StateComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	USpringArmComponent* SpringArmComponent;
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UCameraComponent* CameraComponent;
-	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
-	UStateComponentBase* StateComponent;
+	
 	
 	// Input
 	UPROPERTY(EditDefaultsOnly, Category = "Input", Meta = (AllowPrivateAccess))
 	UInputMappingContext* DefaultIMC;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Input", Meta = (AllowPrivateAccess))
-	UInputAction* IA_RightClick;
-
-	bool bIsRightClicked = false;
-
-	// Rotation
-	FTimerHandle RotationTimerHandle;
-	FRotator FromRotation;
-	FRotator ToRotation;
-	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
-	float RotationTime = 1.f;
+	UInputAction* IA_Q;
 };

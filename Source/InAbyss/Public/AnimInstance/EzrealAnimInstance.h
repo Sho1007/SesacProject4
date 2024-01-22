@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "EzrealAnimInstance.generated.h"
 
+class UFSMComponent;
 /**
  * 
  */
@@ -18,9 +19,18 @@ class INABYSS_API UEzrealAnimInstance : public UAnimInstance
 public:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+	UFUNCTION()
+	void AnimNotify_QStart();
+
+	void SetQReady();
 private:
 	UPROPERTY(BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	bool bIsMove;
+	UPROPERTY(BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	bool bIsQReady;
 	UPROPERTY()
 	AEzreal* Ezreal;
+	UPROPERTY()
+	UFSMComponent* FSMComponent;
 };
