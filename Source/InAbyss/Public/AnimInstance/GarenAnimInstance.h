@@ -18,7 +18,7 @@ public:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 		
-protected:
+public:
 	// Player
 	UPROPERTY()
 	class AGaren* Owner;
@@ -38,6 +38,12 @@ protected:
 	// 죽음 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsDead_Garen = false;
+
+
+	// Q 이동 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsQMove_Garen = false;
+
 
 public: // 몽타주 저장할 변수
 	UPROPERTY(EditDefaultsOnly)
@@ -77,9 +83,13 @@ public: // 몽타주 저장할 변수
 
 
 	bool bIsSkill_Q = false;
+	bool bIsSkilling_Q = false;
 	bool bIsSkill_W = false;
+	bool bIsSkilling_W = false;
 	bool bIsSkill_E = false;
+	bool bIsSkilling_E = false;
 	bool bIsSkill_R = false;
+	bool bIsSkilling_R = false;
 
 
 public: // 몽타주 플레이 함수
@@ -103,6 +113,10 @@ public: // AnimNotify - 애니메이션 특정 시점에서 Garen클래스의 함수를 호출
 	void AnimNotify_EndAttack_Garen();
 
 	// 스킬
+	UFUNCTION()
+	void AnimNotify_Skill_Q();
 
+	UFUNCTION()
+	void AnimNotify_EndSkill_Q();
 
 };
