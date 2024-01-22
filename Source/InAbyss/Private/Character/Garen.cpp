@@ -41,6 +41,8 @@ AGaren::AGaren()
 	AttackRange->SetSphereRadius(180);
 
 	// ÀÌÆåÆ® ÄÄÆ÷³ÍÆ®
+	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
+	NSComp->SetupAttachment(RootComponent);
 
 }
 
