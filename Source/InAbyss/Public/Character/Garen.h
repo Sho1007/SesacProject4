@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include <../../../../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputActionValue.h>
+#include "Interface/StateInterface.h"
 #include "Garen.generated.h"
 
 UENUM()
@@ -14,11 +15,12 @@ enum class EGarenState: uint8
 	IDLE,
 	MOVE,
 	ATTACK,
-	SKILL
+	SKILL,
+	DEAD
 };
 
 UCLASS()
-class INABYSS_API AGaren : public ACharacter
+class INABYSS_API AGaren : public ACharacter, public IStateInterface
 {
 	GENERATED_BODY()
 
@@ -94,15 +96,23 @@ public: // 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UCameraComponent* CameraComp;
 
+	// 공격범위 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class USphereComponent* AttackRange;
 
 public:	// 키 입력 함수
 	// 마우스 오른쪽 입력
 	void MouseRightClick(const FInputActionValue& value);
+	void MouseRightClick_Triggered(const FInputActionValue& value);
 
 	void MouseLeftClick(const FInputActionValue& value);
 
+	void KeyBoard_Q(const FInputActionValue& value);
+	void KeyBoard_W(const FInputActionValue& value);
+	void KeyBoard_E(const FInputActionValue& value);
+	void KeyBoard_R(const FInputActionValue& value);
+
+	void KeyBoard_SpaceBar(const FInputActionValue& value);
 
 public: // 이동기능
 	FHitResult HitInfo;
@@ -110,8 +120,7 @@ public: // 이동기능
 	AActor* MouseHitActor;
 
 	void Move_Garen();
-	void aaa();
-	void bbb();
+	void Turn_Garen();
 
 	FRotator CurrentRotation = FRotator(0);
 
@@ -128,6 +137,24 @@ public: // 일반 공격기능
 	class AMinionBase* Target_Minion;
 	class ABuilding_Base* Target_Building;
 
+	// 특정 스킬에서 다수의 대상을 공격하는 경우
+	TArray<AActor*> Targets_Skill;
+
+
+
+
+	// 공격범위
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float AttackDistance = 100.f;
+
+	// 공격 감지 범위
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float DetectDistance = 100.f;
+
+
+
+
+
 public: // 스킬 기능
 	void QSkill_Garen();
 	void WSkill_Garen();
@@ -138,4 +165,12 @@ public: // 스킬 기능
 public: // 카메라 이동
 	void CameraHold_Garen();
 
+public: // 애니메이션
+	UPROPERTY()
+	class UGarenAnimInstance* GarenAnim;
+
+public: // 인터페이스 가상함수 상속 부분
+		virtual void Damaged() override;
+
+		virtual void Die() override;
 };
