@@ -197,7 +197,7 @@ void UGarenAnimInstance::AnimNotify_EndSkill_Q()
 	// Q 공격 애니메이션이 종료되면 이전에 진행 중이던 공격 애니메이션 이어서 실행
 
 	bIsSkilling_Q = false; // 스킬 사용 중 끄기
-	bIsQMove_Garen = false; // Q이동 끄기
+	bIsQMove_Garen = false; // Q 이동 끄기
 	AnimNotify_EndAttack_Garen();
 
 	Owner->Speed = 300;
@@ -207,12 +207,14 @@ void UGarenAnimInstance::AnimNotify_Skill_R()
 {
 	// 지정한 대상에게 데미지 - 적 챔피언 한정
 
+	Owner->Attack_Normal_Garen(); // 임시
 
 }
 
 void UGarenAnimInstance::AnimNotify_EndSkill_R()
 {
 	
+	bIsSkill_R = false; // 
 	bIsSkilling_R = false; // 
 
 }
