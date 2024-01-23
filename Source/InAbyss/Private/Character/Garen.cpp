@@ -44,7 +44,7 @@ AGaren::AGaren()
 	// 이펙트 컴포넌트
 	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
 	NSComp->SetupAttachment(RootComponent);
-	NSComp->SetRelativeScale3D(FVector(2, 2, 2.5f));
+	NSComp->SetRelativeScale3D(FVector(1));
 
 
 
@@ -143,6 +143,7 @@ void AGaren::Tick(float DeltaTime)
 
 		break;
 	}
+
 
 	Turn_Garen();
 
@@ -349,6 +350,73 @@ void AGaren::MouseLeftClick(const FInputActionValue& value)
 	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Left"));
 	// 특정 스킬을 사용한 경우, 대상을 지정해야 할 때 사용한다. 
 
+	// R스킬 활성화 시에만 사용할 수 있도록 함
+	if (GarenAnim->bIsSkill_R == false) {
+		return;
+	}
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	GarenState = EGarenState::IDLE;
+
+	// 마우스로 클릭한 위치의 정보를 담기 위한 기능
+	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
+
+		CursorPlace = HitInfo.Location;
+		CursorPlace.Z = 0.f;
+
+		// 클릭한 대상이 스테이터스 컴포넌트가 없으면 종료
+		if (!HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>()) {
+			return;
+		}
+
+		// 클릭한 캐릭터가 스킬 범위 안에 있다면
+		if (FVector::Dist(GetActorLocation(), HitInfo.GetActor()->GetActorLocation()) <= 500) {
+
+
+			// R 스킬 사용 대상을 지정
+			if (HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
+
+				Target_Champion = Cast<ACharacter>(HitInfo.GetActor());
+
+				// 원하는 함수 호출
+
+				//Turn_Garen();
+
+				GarenAnim->PlayANM_R();
+
+			}
+
+		}
+		else if (FVector::Dist(GetActorLocation(), HitInfo.GetActor()->GetActorLocation()) >= 500) {
+			// 캐릭터를 대상이 스킬 범위에 들어올 때까지 이동
+
+			/*
+			// 캐릭터의 현재 위치를 저장
+			FVector ActorLocatoin = GetActorLocation();
+			ActorLocatoin.Z = 0.f;
+			// 지정된 위치의 방향을 설정
+			FVector Direction = (HitInfo.GetActor()->GetActorLocation() - ActorLocatoin).GetSafeNormal();
+
+			// 캐릭터의 위치를 이동
+			AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
+
+			if (FVector::Dist(GetActorLocation(), HitInfo.GetActor()->GetActorLocation()) >= 500) {
+
+				MouseLeftClick(true);
+
+			}
+			*/
+
+		}
+
+
+		
+	}
 
 }
 
@@ -360,7 +428,7 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 
 	GarenAnim->bIsQMove_Garen = true;
 
-	Speed = Speed * 1.5;
+	Speed = Speed * 1.3;
 
 	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
 
@@ -372,6 +440,9 @@ void AGaren::KeyBoard_W(const FInputActionValue& value)
 {
 	//NSComp->SetVisibility(true);
 
+	// W 스킬 이펙트 스폰
+
+
 }
 
 void AGaren::KeyBoard_E(const FInputActionValue& value)
@@ -382,18 +453,21 @@ void AGaren::KeyBoard_E(const FInputActionValue& value)
 
 void AGaren::KeyBoard_R(const FInputActionValue& value)
 {
-	//SetActorLocation(GetActorLocation());
 
-	// 적 챔피언이 타겟팅 되었을 때
-	/*if (!Target_Champion) {
-		return;
-	}*/
+	// R스킬 활성화
+	GarenAnim->bIsSkill_R = true;
 
-	GarenAnim->PlayANM_R();
 
-	
-	// 적 챔피언이 공격 범위 안에 있고, 적 챔피언을 클릭하면
-	// 적 챔피언이 공격 대상이 되고, 데미지를 입힌다. 
+	// 스킬 범위를 이펙트로 표시
+
+
+
+	// 마우스 커서 변경
+
+
+
+
+
 }
 
 void AGaren::KeyBoard_SpaceBar(const FInputActionValue& value)
@@ -405,7 +479,7 @@ void AGaren::Move_Garen() // 가렌의 이동
 	//UE_LOG(LogTemp, Warning, TEXT("Move_Success"));
 
 	// 지정된 위치로 이동한다. 
-	
+
 
 
 	// 캐릭터의 현재 위치를 저장
@@ -418,9 +492,6 @@ void AGaren::Move_Garen() // 가렌의 이동
 
 		return;
 	}
-	
-
-	
 
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
