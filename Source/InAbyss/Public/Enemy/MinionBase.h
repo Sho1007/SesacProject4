@@ -141,6 +141,7 @@ private:
 	float SeparationDistance = 40.f;
 	float NeighborDistance = 100.f;
 
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
 	float SeparationWeight = 1.f;
 	float AlignmentWeight = 1.f;
 	float CohesionWeight = 1.f;
