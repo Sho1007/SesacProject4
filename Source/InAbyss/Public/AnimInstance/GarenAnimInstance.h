@@ -115,8 +115,11 @@ public: // AnimNotify - 애니메이션 특정 시점에서 Garen클래스의 함수를 호출
 	// 스킬
 	UFUNCTION()
 	void AnimNotify_Skill_Q();
-
 	UFUNCTION()
 	void AnimNotify_EndSkill_Q();
 
+	UFUNCTION()
+	void AnimNotify_Skill_R();
+	UFUNCTION()
+	void AnimNotify_EndSkill_R();
 };
