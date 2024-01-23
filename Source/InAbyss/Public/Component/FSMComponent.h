@@ -56,8 +56,8 @@ public:
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
-	UParticleSystem* Cursor;
-	UNiagaraSystem;	
+	UNiagaraSystem* Cursor;
+		
 	// Component
 	UStateComponentBase* StateComponent;
 	
