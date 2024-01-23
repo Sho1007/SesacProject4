@@ -24,7 +24,10 @@ AEzreal::AEzreal()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
 	StateComponent = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponent"));
+	StateComponent->SetIsReplicated(true);
+	
 	FSMComponent = CreateDefaultSubobject<UFSMComponent>(TEXT("FSMComponent"));
+	FSMComponent->SetIsReplicated(true);
 }
 
 void AEzreal::BeginPlay()
@@ -59,6 +62,8 @@ void AEzreal::MultiRPC_Q_Implementation()
 void AEzreal::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (IsLocallyControlled() == false) return;
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{

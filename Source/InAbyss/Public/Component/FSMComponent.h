@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "FSMComponent.generated.h"
 
+class UNiagaraSystem;
 class UStateComponentBase;
 class UInputAction;
 class AEzreal;
@@ -38,8 +39,13 @@ public:
 	// Input
 	UFUNCTION()
 	void RightClickStarted(const FInputActionValue& Value);
+
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_RightClickStarted(FVector NewWorldOrigin, FVector NewWorldDirection);
+
+	
+	// UFUNCTION(Server, Reliable)
+	// void ServerRPC_RightClickStarted(FVector NewWorldOrigin, FVector NewWorldDirection);
 
 	// Getter
 	bool IsMove() const;
@@ -49,6 +55,9 @@ public:
 	void OnRep_Destination();
 	
 private:
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UParticleSystem* Cursor;
+	UNiagaraSystem;	
 	// Component
 	UStateComponentBase* StateComponent;
 	
@@ -72,7 +81,6 @@ private:
 	float MoveSpeed = 300.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Move", Meta = (AllowPrivateAccess))
 	float ReachSuccessDistance = 10.f;
-	// UPROPERTY(Replicated, Meta = (AllowPrivateAccess))
 	bool bIsMove = false;
 
 	// GetUnderCursor

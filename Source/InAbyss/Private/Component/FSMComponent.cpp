@@ -9,6 +9,7 @@
 
 #include "Character/Ezreal.h" 
 #include "Component/StateComponentBase.h"
+#include "InAbyss/InAbyss.h"
 
 // Sets default values for this component's properties
 UFSMComponent::UFSMComponent()
@@ -37,15 +38,6 @@ void UFSMComponent::BeginPlay()
 	// Todo : Have to Change Owenr Type To ACharacterBase After.
 	Owner = GetOwner<AEzreal>();
 
-	if (Owner->HasAuthority() == true)
-	{
-		SetIsReplicated(true);
-	}
-
-	// Rotation Init
-	FromRotation = Owner->GetActorRotation();
-	ToRotation = FromRotation;
-
 	// Find Other Component
 	StateComponent = Owner->GetComponentByClass<UStateComponentBase>();
 
@@ -56,7 +48,6 @@ void UFSMComponent::BeginPlay()
 	}
 }
 
-
 // Called every frame
 void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -65,10 +56,18 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	// ...
 
 	
-
+	// FString DebugText = TEXT("Owner : ") + Owner->GetActorNameOrLabel() + TEXT("\n");
+	// DebugText += TEXT("LocalRole : ") + UEnum::GetValueAsString<ENetRole>(Owner->GetLocalRole()) + TEXT("\n");
+	// DebugText += TEXT("RemoteRole : ") + UEnum::GetValueAsString<ENetRole>(Owner->GetRemoteRole()) + TEXT("\n");
+	// DrawDebugString(GetWorld(), FVector(), DebugText, Owner, FColor::Yellow,
+	// 	0.01);
+	
 	Rotate(DeltaTime);
 
+	// PRINTLOG(TEXT("Character : %s"), *Owner->GetActorNameOrLabel());
+
 	FVector MoveDirection =  Destination - Owner->GetActorLocation();
+	MoveDirection.Z = 0.f;
 	if (MoveDirection.Length() > ReachSuccessDistance)
 	{
 		bIsMove = true;
@@ -92,6 +91,7 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 
 void UFSMComponent::SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInputComponent)
 {
+	if (GetOwner<ACharacter>()->IsLocallyControlled() == false) return;
 	EnhancedInputComponent->BindAction(IA_RightClick, ETriggerEvent::Started, this, &UFSMComponent::RightClickStarted);
 }
 
@@ -106,12 +106,25 @@ bool UFSMComponent::Rotate(float DeltaTime)
 
 void UFSMComponent::RightClickStarted(const FInputActionValue& Value)
 {
-	ServerRPC_RightClickStarted(WorldOrigin, WorldDirection);
-	FHitResult HitResult;
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldOrigin, WorldOrigin + WorldDirection * 100'000, ECC_Visibility))
+	if (Owner->HasAuthority() == true)
 	{
-		// PRINTLOG(TEXT("Hit Actor Name : %s"), *HitResult.GetActor()->GetActorNameOrLabel());
-		// ServerRPC_RightClickStarted(WorldOrigin, WorldDirection);
+		ServerRPC_RightClickStarted_Implementation(WorldOrigin, WorldDirection);
+	}
+	else
+	{
+		ServerRPC_RightClickStarted(WorldOrigin, WorldDirection);
+	}
+}
+
+void UFSMComponent::ServerRPC_RightClickStarted_Implementation(FVector NewWorldOrigin, FVector NewWorldDirection)
+{
+	// PRINTLOG(TEXT("WorldOrigin : %s, WorldDirection : %s"), *NewWorldOrigin.ToString(), *NewWorldDirection.ToString());
+	
+	FHitResult HitResult;
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, NewWorldOrigin,
+	NewWorldOrigin + NewWorldDirection * 100'000, ECC_Visibility))
+	{
+		// PRINTLOG(TEXT("DebugPoint 1"));
 		Destination = HitResult.Location;
 		OnRep_Destination();
 	}
@@ -124,7 +137,12 @@ bool UFSMComponent::IsMove() const
 
 void UFSMComponent::OnRep_Destination()
 {
+	if (Owner->IsLocallyControlled())
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Cursor, Destination);
+	}
 	Destination.Z = Owner->GetActorLocation().Z;
+	// PRINTLOG(TEXT("Destinantion : %s"), *Destination.ToString());
 
 	CurrentRotationTime = 0.f;
 	
@@ -132,23 +150,25 @@ void UFSMComponent::OnRep_Destination()
 	ToRotation =  FRotationMatrix::MakeFromX((Destination - Owner->GetActorLocation()).GetSafeNormal()).Rotator();
 }
 
-void UFSMComponent::ServerRPC_RightClickStarted_Implementation(FVector NewWorldOrigin, FVector NewWorldDirection)
-{
-	FHitResult HitResult;
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldOrigin,
-		NewWorldOrigin + NewWorldDirection * 100'000, ECC_Visibility))
-	{
-		if (UStateComponentBase* HitStateComponent = HitResult.GetActor()->GetComponentByClass<UStateComponentBase>())
-		{
-			if (HitStateComponent->GetFactionType() != StateComponent->GetFactionType())
-			{
-				// Todo Set Target;
-				return;
-			}
-		} 
-
-		Destination = HitResult.Location;
-		OnRep_Destination();
-		// MultiRPC_SetDestination(HitResult.Location);
-	}
-}
+// void UFSMComponent::ServerRPC_RightClickStarted_Implementation(FVector NewWorldOrigin, FVector NewWorldDirection)
+// {
+// 	PRINTLOG(TEXT(""));
+// 	FHitResult HitResult;
+// 	if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldOrigin,
+// 		NewWorldOrigin + NewWorldDirection * 100'000, ECC_Visibility))
+// 	{
+// 		if (UStateComponentBase* HitStateComponent = HitResult.GetActor()->GetComponentByClass<UStateComponentBase>())
+// 		{
+// 			if (HitStateComponent->GetFactionType() != StateComponent->GetFactionType())
+// 			{
+// 				// Todo Set Target;
+// 				return;
+// 			}
+// 		} 
+//
+// 		Destination = HitResult.Location;
+// 		PRINTLOG(TEXT("Destinantion : %s"), *Destination.ToString());
+// 		OnRep_Destination();
+// 		// MultiRPC_SetDestination(HitResult.Location);
+// 	}
+// }
