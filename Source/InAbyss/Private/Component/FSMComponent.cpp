@@ -5,6 +5,7 @@
 
 #include <EnhancedInputComponent.h>
 #include <Kismet/GameplayStatics.h>
+#include <NiagaraFunctionLibrary.h>
 #include <Net/UnrealNetwork.h>
 
 #include "Character/Ezreal.h" 
@@ -139,7 +140,7 @@ void UFSMComponent::OnRep_Destination()
 {
 	if (Owner->IsLocallyControlled())
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Cursor, Destination);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Cursor, Destination);
 	}
 	Destination.Z = Owner->GetActorLocation().Z;
 	// PRINTLOG(TEXT("Destinantion : %s"), *Destination.ToString());
