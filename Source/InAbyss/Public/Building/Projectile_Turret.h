@@ -33,6 +33,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UParticleSystemComponent* ParticleComp;
 
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UNiagaraComponent* NSComp;
+
+
+
 	// Owner값을 저장할 변수
 	class ATurret_Base* OwnerTurret;
 
