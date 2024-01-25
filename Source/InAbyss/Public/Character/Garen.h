@@ -106,6 +106,12 @@ public: // 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UNiagaraComponent* NSComp;
 
+	// UI 위젯 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UWidgetComponent* HPBarComp;
+
+
+
 public:	// 키 입력 함수
 	// 마우스 오른쪽 입력
 	void MouseRightClick(const FInputActionValue& value);
@@ -160,16 +166,19 @@ public: // 일반 공격기능
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	float DetectDistance = 100.f;
 
-
+	void SettingTarget();
 
 
 
 public: // 스킬 기능
-	void QSkill_Garen();
-	void WSkill_Garen();
-	void ESkill_Garen();
-	void RSkill_Garen();
+	void Q_Skill_Garen();
+	void W_Skill_Garen();
+	void E_Skill_Garen();
+	void R_Skill_Garen();
 	void PassiveSkill_Garen();
+
+	void R_Move();
+	bool bIs_R_Move = false;
 
 public: // 카메라 이동
 	void CameraHold_Garen();
