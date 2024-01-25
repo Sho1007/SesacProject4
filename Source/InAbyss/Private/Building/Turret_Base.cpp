@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Enemy/MinionBase.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/Character.h>
+#include <../../../../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h>
 
 ATurret_Base::ATurret_Base()
 {
@@ -23,6 +24,12 @@ ATurret_Base::ATurret_Base()
 	AttackStartPointComp = CreateDefaultSubobject<USceneComponent>(TEXT("AttackStartPointComp"));
 	AttackStartPointComp->SetupAttachment(RootComponent);
 	AttackStartPointComp->SetRelativeLocation(FVector(50, 160, 590));
+
+
+	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
+	NSComp->SetupAttachment(AttackStartPointComp);
+	NSComp->SetRelativeScale3D(FVector(0.01f));
+
 
 	//UE_LOG(LogTemp, Warning, TEXT("New Play Log========================================================"));
 
@@ -124,7 +131,7 @@ void ATurret_Base::Tick(float DeltaTime)
 
 			CurrentTIme = 0.f;
 
-			// 공격함수 호출 - 발사체 스폰
+						// 공격함수 호출 - 발사체 스폰
 			Attact_SpawnProjectile();
 		}
 
@@ -521,6 +528,8 @@ void ATurret_Base::RetargetCurrentTarget()
 
 void ATurret_Base::Attact_SpawnProjectile()
 {
+
+	NSComp->Activate();
 
 	// 발사체를 스폰해야 함 - 공격 자체는 발사체가 타겟을 따라가는 방식으로 이루어질 것
 	AProjectile_Turret* NewProjectile = GetWorld()->SpawnActor<AProjectile_Turret>(ProjectileFactory, AttackStartPointComp->GetComponentTransform());

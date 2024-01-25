@@ -37,6 +37,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USceneComponent* AttackStartPointComp;
 
+	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UNiagaraComponent* NSComp;
+
 public: // 감지기능
 
 	// 감지된 대상들을 저장할 배열
