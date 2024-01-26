@@ -121,6 +121,19 @@ void ATurret_Base::Tick(float DeltaTime)
 	// 만약 공격대상이 지정되어 있다면
 	if (CurrentTarget) {
 
+		if (CurrentTarget->GetComponentByClass<UStateComponentBase>() == nullptr) {
+			return;
+		}
+
+		UStateComponentBase* StateComp = CurrentTarget->GetComponentByClass<UStateComponentBase>();
+		if (StateComp->IsDead() == true) {
+			CurrentTarget = nullptr;
+			BuildingState = EBuildingState::IDLE;
+
+			return;
+		}
+
+
 		BuildingState = EBuildingState::Attack;
 
 		// 시간을 카운트 시작
@@ -131,7 +144,7 @@ void ATurret_Base::Tick(float DeltaTime)
 
 			CurrentTIme = 0.f;
 
-						// 공격함수 호출 - 발사체 스폰
+			// 공격함수 호출 - 발사체 스폰
 			Attact_SpawnProjectile();
 		}
 
@@ -221,8 +234,8 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	*/
 
 	// 상태 컴포넌트를 갖고 있고, 같은 팀이 아니라면
-	if (OtherActor->GetComponentByClass<UStateComponentBase>() && 
-	OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
+	if (OtherActor->GetComponentByClass<UStateComponentBase>() &&
+		OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
 
 		if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
 			DetectTargets_SuperOrCanon.Add(OtherActor);
@@ -506,7 +519,7 @@ void ATurret_Base::RetargetCurrentTarget()
 
 
 	/*
-	// 남아있는 배열이 있다면, 우선순위에 따라 해당 배열의 0번 인덱스를 공격 대상으로 함 
+	// 남아있는 배열이 있다면, 우선순위에 따라 해당 배열의 0번 인덱스를 공격 대상으로 함
 	// 1. 슈퍼/공성 미니언 ==== 2.전사 미니언 ==== 3. 마법사 미니언 ==== 4. 적 챔피언
 	if (DetectTargets_SuperOrCanon.Num() > 0) {
 		CurrentTarget = DetectTargets_SuperOrCanon[0];
