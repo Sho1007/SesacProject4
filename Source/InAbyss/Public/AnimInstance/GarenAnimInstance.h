@@ -23,29 +23,29 @@ public:
 	UPROPERTY()
 	class AGaren* Owner;
 
-	// Idleº¯¼ö
+	// Idleë³€ìˆ˜
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsIdle_Garen = false;
 
-	// ÀÌµ¿ º¯¼ö
+	// ì´ë™ ë³€ìˆ˜
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsMove_Garen = false;
 
-	// °ø°İ º¯¼ö
+	// ê³µê²© ë³€ìˆ˜
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsAttack_Garen = false;
 	
-	// Á×À½ º¯¼ö
+	// ì£½ìŒ ë³€ìˆ˜
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsDead_Garen = false;
 
 
-	// Q ÀÌµ¿ º¯¼ö
+	// Q ì´ë™ ë³€ìˆ˜
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsQMove_Garen = false;
 
 
-public: // ¸ùÅ¸ÁÖ ÀúÀåÇÒ º¯¼ö
+public: // ëª½íƒ€ì£¼ ì €ì¥í•  ë³€ìˆ˜
 	UPROPERTY(EditDefaultsOnly)
 	class UAnimMontage* ANM_Idle;
 	
@@ -58,7 +58,7 @@ public: // ¸ùÅ¸ÁÖ ÀúÀåÇÒ º¯¼ö
 	UPROPERTY(EditDefaultsOnly)
 	class UAnimMontage* ANM_Dead;
 
-	// Skill ¸ùÅ¸ÁÖ
+	// Skill ëª½íƒ€ì£¼
 	UPROPERTY(EditDefaultsOnly)
 	class UAnimMontage* ANM_Skill_Q;
 
@@ -72,12 +72,12 @@ public: // ¸ùÅ¸ÁÖ ÀúÀåÇÒ º¯¼ö
 	class UAnimMontage* ANM_Skill_R;
 
 
-	// ¸ùÅ¸ÁÖ ¹è¿­
+	// ëª½íƒ€ì£¼ ë°°ì—´
 	UPROPERTY(EditDefaultsOnly)
 	TArray<UAnimMontage*> ANM_Attack_Array;
 	int32 AttackMontageIndex = 0;
 
-	// ¹è¿­ ÀÎµ¦½º
+	// ë°°ì—´ ì¸ë±ìŠ¤
 	int IndexNumber = 0;
 
 
@@ -92,13 +92,13 @@ public: // ¸ùÅ¸ÁÖ ÀúÀåÇÒ º¯¼ö
 	bool bIsSkilling_R = false;
 
 
-public: // ¸ùÅ¸ÁÖ ÇÃ·¹ÀÌ ÇÔ¼ö
+public: // ëª½íƒ€ì£¼ í”Œë ˆì´ í•¨ìˆ˜
 	void PlayANM_Idle();
 	void PlayANM_Move();
 	void PlayANM_Attack();
 	void PlayANM_Dead();
 
-	// ½ºÅ³ ¸ùÅ¸ÁÖ
+	// ìŠ¤í‚¬ ëª½íƒ€ì£¼
 	void PlayANM_Q();
 	//void PlayANM_W();
 	void PlayANM_E();
@@ -106,13 +106,13 @@ public: // ¸ùÅ¸ÁÖ ÇÃ·¹ÀÌ ÇÔ¼ö
 
 
 
-public: // AnimNotify - ¾Ö´Ï¸ŞÀÌ¼Ç Æ¯Á¤ ½ÃÁ¡¿¡¼­ GarenÅ¬·¡½ºÀÇ ÇÔ¼ö¸¦ È£Ãâ 
+public: // AnimNotify - ì• ë‹ˆë©”ì´ì…˜ íŠ¹ì • ì‹œì ì—ì„œ Garení´ë˜ìŠ¤ì˜ í•¨ìˆ˜ë¥¼ í˜¸ì¶œ 
 	UFUNCTION()
 	void AnimNotify_Attack_Garen();
 	UFUNCTION()
 	void AnimNotify_EndAttack_Garen();
 
-	// ½ºÅ³
+	// ìŠ¤í‚¬
 	UFUNCTION()
 	void AnimNotify_Skill_Q();
 	UFUNCTION()

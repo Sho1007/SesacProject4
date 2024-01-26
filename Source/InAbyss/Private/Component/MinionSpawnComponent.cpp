@@ -26,9 +26,10 @@ void UMinionSpawnComponent::BeginPlay()
 	{
 		SetComponentTickEnabled(true);
 
-		if (UStateComponentBase* StateComponentBase = GetOwner()->GetComponentByClass<UStateComponentBase>())
+		NexusStateComponent = GetOwner()->GetComponentByClass<UStateComponentBase>();
+		if (NexusStateComponent)
 		{
-			FactionType = StateComponentBase->GetFactionType();
+			FactionType = NexusStateComponent->GetFactionType();
 		}
 
 		PrepareMinion();
@@ -44,6 +45,12 @@ void UMinionSpawnComponent::BeginPlay()
 void UMinionSpawnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (NexusStateComponent && NexusStateComponent->IsDead())
+	{
+		SetComponentTickEnabled(false);
+		return;
+	}
 
 	CurrentMinionSpawnTime += DeltaTime;
 
@@ -65,8 +72,9 @@ void UMinionSpawnComponent::PrepareMinion()
 	{
 		for (int i = 0; i < MeleeMinionPoolCount; ++i)
 		{
-			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(MeleeMinionClass, SpawnLocation, FRotator(),
+			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(MeleeMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation(),
 			Params);
+			Minion->SetWayPointArray(WayPointArray);
 			Minion->Deactivate();
 			if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
 			{
@@ -81,8 +89,9 @@ void UMinionSpawnComponent::PrepareMinion()
 	{
 		for (int i = 0; i < CasterMinionPoolCount; ++i)
 		{
-			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(CasterMinionClass, SpawnLocation, FRotator(),
+			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(CasterMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation(),
 			Params);
+			Minion->SetWayPointArray(WayPointArray);
 			Minion->Deactivate();
 			if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
 			{
@@ -97,8 +106,9 @@ void UMinionSpawnComponent::PrepareMinion()
 	{
 		for (int i = 0; i < SiegeMinionPoolCount; ++i)
         {
-        	AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(SiegeMinionClass, SpawnLocation, FRotator(),
+        	AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(SiegeMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation(),
         	Params);
+			Minion->SetWayPointArray(WayPointArray);
         	Minion->Deactivate();
         	if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
         	{
@@ -112,7 +122,7 @@ void UMinionSpawnComponent::PrepareMinion()
 
 void UMinionSpawnComponent::SpawnMinion()
 {
-	PRINTLOG(TEXT(""));
+	// PRINTLOG(TEXT(""));
 	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 	TimerManager.ClearTimer(SpawnMinionTimerHandle);
 

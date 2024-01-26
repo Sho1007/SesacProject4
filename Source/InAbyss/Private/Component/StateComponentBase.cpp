@@ -117,6 +117,8 @@ void UStateComponentBase::SetMana(float NewMana)
 void UStateComponentBase::ApplyDamage(float ADDamage, float APDamage)
 {
 	if (GetOwner()->HasAuthority() == false) return;
+
+	if (IsDead()) return;
 	
 	float TotalDamage = ADDamage + APDamage;
 
@@ -142,6 +144,14 @@ void UStateComponentBase::AddHealth(float AddAmount)
 	float OverHealthAmount = (AddAmount + Health) > MaxHealth ? (AddAmount + Health) - MaxHealth : 0.f;
 	
 	SetHealth(AddAmount + Health);
+}
+
+void UStateComponentBase::AddExp(const float NewExp)
+{
+}
+
+void UStateComponentBase::AddMoney(const int32 NewMoney)
+{
 }
 
 void UStateComponentBase::OnRep_Health()

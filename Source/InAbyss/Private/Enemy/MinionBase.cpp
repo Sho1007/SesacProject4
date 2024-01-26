@@ -12,6 +12,7 @@
 #include "AnimInstance/MinionAnimInstance.h"
 #include "Component/StateComponentBase.h"
 #include "Enemy/EnemyProjectile.h"
+#include "InAbyss/InAbyss.h"
 
 #include "Widget/InGame/HealthBarWidgetBase.h"
 
@@ -82,22 +83,95 @@ void AMinionBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// TArray<FOverlapResult> OutOverlaps;
-	// FCollisionObjectQueryParams ObjectQueryParams;
-	// ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
-	//
-	// NeighborActorArray.Empty();
-	// if (GetWorld()->OverlapMultiByObjectType(OutOverlaps, GetActorLocation(), GetActorRotation().Quaternion(), ObjectQueryParams,
-	// 	FCollisionShape::MakeSphere(SeparationDistance)))
-	// {
-	// 	for (auto Iter : OutOverlaps)
-	// 	{
-	// 		if (Iter.GetActor() == this) continue;
-	//
-	// 		NeighborActorArray.Add(Iter.GetActor());
-	// 	}
-	// }
+	if (StateComponent->IsDead())
+	{
+		return;
+	}
 
+	switch (EnemyState) {
+	case EEnemyState::MOVE:
+		{
+			if (WayPointIndex >= WayPointArray.Num()) return;
+
+			FVector WayPointDirection = WayPointArray[WayPointIndex]->GetActorLocation() - GetActorLocation();
+			WayPointDirection.Z = 0.f;
+			// Todo : 멤버 변수화 필요
+			float ReachSuccessDistance = 200.f;
+
+
+			FVector NexusLocation = WayPointArray[WayPointArray.Num() - 1]->GetActorLocation();
+			
+			
+			if (FVector::DistXY(NexusLocation, GetActorLocation()) > FVector::DistXY(NexusLocation, WayPointArray[WayPointIndex]->GetActorLocation()))
+			{
+				WayPointDirection.Normalize();
+				if (NeighborActorArray.Num() > 0)
+				{
+					// DrawDebugSphere(GetWorld(), GetActorLocation(), SeparationDistance, 20, FColor::Yellow);
+					FVector SeparationVector = Separation() * SeparationWeight;
+				
+					
+					WayPointDirection += SeparationVector;
+					WayPointDirection.Normalize();
+				}
+				SetActorRotation(FMath::Lerp(GetActorRotation(), FRotationMatrix::MakeFromX(WayPointDirection).Rotator(), DeltaTime * 5.f));
+				
+				AddActorWorldOffset(GetActorForwardVector() * MoveSpeed * DeltaTime, true);
+			}
+			else
+			{
+				WayPointIndex++;
+			}
+		}
+		
+		break;
+	case EEnemyState::ATTACK:
+		if (Target == nullptr || TargetStateComponent->IsDead())
+		{
+			FindTarget();
+			if (Target == nullptr) EnemyState = EEnemyState::MOVE;
+		}
+		else
+		{
+			FVector TargetDirection = Target->GetActorLocation() - GetActorLocation();
+			TargetDirection.Z = 0.f;
+			TargetDistance = TargetDirection.Length();
+			if (TargetDistance <= AttackDistance)
+			{
+				if (bIsAttacking == false)
+				{
+					SetActorRotation(FRotationMatrix::MakeFromX(TargetDirection).Rotator());
+					bIsAttacking = true;
+					MultiRPC_PlayAttackMontage();
+				}
+			}
+			else
+			{
+				TargetDirection.Normalize();
+				if (NeighborActorArray.Num() > 0)
+				{
+					// DrawDebugSphere(GetWorld(), GetActorLocation(), SeparationDistance, 20, FColor::Yellow);
+					FVector SeparationVector = Separation() * SeparationWeight;
+				
+					
+					TargetDirection += SeparationVector;
+					TargetDirection.Normalize();
+				}
+				SetActorRotation(FMath::Lerp(GetActorRotation(), FRotationMatrix::MakeFromX(TargetDirection).Rotator(), DeltaTime * 5.f));
+				
+				AddActorWorldOffset(GetActorForwardVector() * MoveSpeed * DeltaTime, true);
+			}
+		}
+		break;
+	}
+
+	
+
+	
+	
+	
+	/*
+	Todo : 기존 FSM, WayPointTravel 구현 후 이것도 적용 필요
 	if (bIsAttacking == true) return;
 
 	FVector TargetVector;
@@ -162,8 +236,14 @@ void AMinionBase::Tick(float DeltaTime)
 		}
 		break;
 	case EEnemyState::ATTACK:
-		if (Target != nullptr)
+		if (Target != nullptr && TargetStateComponent != nullptr)
 		{
+			if (TargetStateComponent->GetHPPercent() <= 0.f)
+			{
+				EnemyState = EEnemyState::IDLE;
+				break;
+			}
+			
 			if (TargetDistance > AttackDistance)
 			{
 				EnemyState = EEnemyState::MOVE;
@@ -186,6 +266,8 @@ void AMinionBase::Tick(float DeltaTime)
 	case EEnemyState::RETURN:
 		break;
 	}
+
+	*/
 }
 
 void AMinionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -205,6 +287,8 @@ void AMinionBase::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 {
 	if (OtherActor == this || NeighborActorArray.Contains(OtherActor) || TargetActorArray.Contains(OtherActor)) return;
 
+	// PRINTLOG(TEXT("Overlapped Actor : %s"), *OtherActor->GetActorNameOrLabel());
+	
 	if (UStateComponentBase* OverlapStateComponent = OtherActor->GetComponentByClass<UStateComponentBase>())
 	{
 		if (OverlapStateComponent->GetFactionType() == EFactionType::NEUTRAL) return;
@@ -215,8 +299,11 @@ void AMinionBase::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		}
 		else
 		{
-			if (OverlapStateComponent->GetObjectType() == EObjectType::BUILDING) return;
 			TargetActorArray.Add(OtherActor);
+			if (Target == nullptr)
+			{
+				SetTarget(OtherActor);
+			}
 		}
 	}
 }
@@ -232,10 +319,6 @@ void AMinionBase::OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		NeighborActorArray.Remove(OtherActor);
 	}
-	if (Target == OtherActor)
-	{
-		FindTarget();
-	}
 }
 
 FVector AMinionBase::Separation()
@@ -244,6 +327,20 @@ FVector AMinionBase::Separation()
 	int32 Count = 0;
 	for (auto Iter : NeighborActorArray)
 	{
+		if (Iter->GetComponentByClass<UStateComponentBase>()->IsDead()) continue;
+		FVector Direction = GetActorLocation() - Iter->GetActorLocation();
+		Direction.Z = 0.f;
+		float Distance = Direction.Length();
+		
+		if (Distance > SeparationDistance) continue;
+		Count++;
+		Direction /= Distance;
+		SeparationVector += Direction;
+	}
+
+	for (auto Iter : TargetActorArray)
+	{
+		if (Iter == Target || Iter->GetComponentByClass<UStateComponentBase>()->IsDead()) continue;
 		FVector Direction = GetActorLocation() - Iter->GetActorLocation();
 		Direction.Z = 0.f;
 		float Distance = Direction.Length();
@@ -257,7 +354,7 @@ FVector AMinionBase::Separation()
 	if (Count > 0)
 	{
 		SeparationVector /= Count;
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + (SeparationVector * 500.f), FColor::Cyan, false, -1, 0, 3.f);
+		// DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + (SeparationVector * 500.f), FColor::Cyan, false, -1, 0, 3.f);
 	}
 
 	return SeparationVector;
@@ -317,13 +414,21 @@ void AMinionBase::Die()
 
 void AMinionBase::Activate()
 {
+	EnemyState = EEnemyState::MOVE;
 	bIsActivated = true;
+	bIsAttacking = false;
+	WayPointIndex = 0;
+	Target = nullptr;
+	StateComponent->SetHealthToMax();
+	SetActorLocation(WayPointArray[0]->GetActorLocation());
+	SetActorRotation(WayPointArray[0]->GetActorRotation());
 	SetActorTickEnabled(true);
 	MultiRPC_Activate();
 }
 
 void AMinionBase::Deactivate()
 {
+	PRINTLOG(TEXT("Begin"));
 	bIsActivated = false;
 	SetActorTickEnabled(false);
 	MultiRPC_Deactivate();
@@ -363,6 +468,9 @@ void AMinionBase::EndAttack()
 
 void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
 {
+	if (NewTarget->GetComponentByClass<UStateComponentBase>()->IsDead()) return;
+	
+	EnemyState = EEnemyState::ATTACK;
 	if (Target == nullptr)
 	{
 		Target = NewTarget;
@@ -430,8 +538,16 @@ void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
 	}
 }
 
+void AMinionBase::SetWayPointArray(const TArray<AActor*>& NewWayPointArray)
+{
+	WayPointArray = NewWayPointArray;
+}
+
 void AMinionBase::MultiRPC_PlayDeathMontage_Implementation()
 {
+	HealthBarWidgetComponent->SetVisibility(false);
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	AnimInstance->PlayDeathMontage();
 }
 
@@ -446,20 +562,15 @@ void AMinionBase::MultiRPC_Activate_Implementation()
 void AMinionBase::MultiRPC_Deactivate_Implementation()
 {
 	HealthBarWidgetComponent->SetVisibility(false);
-	SkeletalMeshComponent->SetVisibility(false);
 	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SkeletalMeshComponent->SetVisibility(false);
 }
 
 void AMinionBase::FindTarget()
 {
 	TargetActorArray.Sort();
 	Target = nullptr;
-	if (TargetActorArray.Num() == 0)
-	{
-		return;
-	}
-	SetTarget(TargetActorArray[0]);
 	for (auto Iter : TargetActorArray)
 	{
 		SetTarget(Iter);

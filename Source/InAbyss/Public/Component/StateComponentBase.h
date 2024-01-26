@@ -82,6 +82,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddHealth(float AddAmount);
 
+	// Exp
+	void AddExp(const float NewExp);
+
+	// Money
+	void AddMoney(const int32 NewMoney);
+
 	// Mana
 
 	UFUNCTION()
@@ -93,6 +99,11 @@ public:
 	UFUNCTION()
 	void OnRep_AbilityPower();
 protected:
+	UPROPERTY(EditAnywhere)
+	float Exp;
+	UPROPERTY(EditAnywhere)
+	int32 Money;
+	
 	UPROPERTY(EditAnywhere)
 	EFactionType FactionType;
 	UPROPERTY(EditAnywhere)

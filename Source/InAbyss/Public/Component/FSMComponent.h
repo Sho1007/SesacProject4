@@ -9,8 +9,20 @@
 class UNiagaraSystem;
 class UStateComponentBase;
 class UInputAction;
-class AEzreal;
+class USphereComponent;
 struct FInputActionValue;
+
+UENUM()
+enum class EChampionState : uint8
+{
+	NON,
+	IDLE,
+	ROTATE,
+	MOVE,
+	ATTACK,
+	SKILL,
+	MAX
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INABYSS_API UFSMComponent : public UActorComponent
@@ -22,11 +34,13 @@ public:
 	UFSMComponent();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+
+	void FindEnemy();
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -47,6 +61,8 @@ public:
 	// UFUNCTION(Server, Reliable)
 	// void ServerRPC_RightClickStarted(FVector NewWorldOrigin, FVector NewWorldDirection);
 
+	// Setter
+	void SetShouldStop(bool bNewShouldStop);
 	// Getter
 	bool IsMove() const;
 
@@ -57,8 +73,21 @@ public:
 private:
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UNiagaraSystem* Cursor;
-		
+	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
+	AActor* CursoredTarget;
+	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
+	FVector CursoredLocation;
+	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
+	bool bIsCursored;
+
+	// State
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
+	EChampionState ChampionState = EChampionState::IDLE;
+	AActor* Target = nullptr;
+	bool bIsAttacking = false;
+	
 	// Component
+	UPROPERTY(Meta = (AllowPrivateAccess))
 	UStateComponentBase* StateComponent;
 	
 	// Input
@@ -81,11 +110,13 @@ private:
 	float MoveSpeed = 300.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Move", Meta = (AllowPrivateAccess))
 	float ReachSuccessDistance = 10.f;
+	UPROPERTY(Replicated, Meta = (AllowPrivateAccess))
 	bool bIsMove = false;
+	bool bShouldStop = false;
 
 	// GetUnderCursor
 	UPROPERTY()
-	AEzreal* Owner;
+	ACharacter* Owner;
 	UPROPERTY()
 	APlayerController* PlayerController;
 	UPROPERTY()
