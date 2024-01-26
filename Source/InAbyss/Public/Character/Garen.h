@@ -110,8 +110,6 @@ public: // 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UWidgetComponent* HPBarComp;
 
-
-
 public:	// 키 입력 함수
 	// 마우스 오른쪽 입력
 	void MouseRightClick(const FInputActionValue& value);
@@ -187,8 +185,15 @@ public: // 애니메이션
 	UPROPERTY()
 	class UGarenAnimInstance* GarenAnim;
 
+public: 
+	// 스킬 이펙트 배열
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Niagara", meta = (AllowPrivateAccess = "true"))
+	TArray<class UNiagaraSystem*> SkillEffect;
+
+
 public: // 인터페이스 가상함수 상속 부분
 		virtual void Damaged() override;
 
 		virtual void Die() override;
+
 };
