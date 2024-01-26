@@ -70,7 +70,7 @@ public:
 	virtual void EndAttack();
 
 	void SetTarget(AActor* NewTarget, int32 NewPriority = -1);
-
+	void SetWayPointArray(const TArray<AActor*>& NewWayPointArray);
 public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiRPC_PlayAttackMontage();
@@ -88,6 +88,7 @@ private:
 
 protected:
 	// Object Pool
+	// UPROPERTY(Replicated)
 	bool bIsActivated = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")
@@ -132,8 +133,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "FindTarget")
 	float FindTargetDistance = 200.f;
 
+	// Move
 	UPROPERTY(EditAnywhere, Category = "Move")
 	float MoveSpeed = 200.f;
+	TArray<AActor*> WayPointArray;
+	int32 WayPointIndex;
 
 private:
 	// Boids

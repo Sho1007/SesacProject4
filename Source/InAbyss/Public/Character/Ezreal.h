@@ -6,6 +6,7 @@
 #include "Character/CharacterBase.h"
 #include "Ezreal.generated.h"
 
+class USkillComponent;
 class UFSMComponent;
 class UStateComponentBase;
 class UCameraComponent;
@@ -17,17 +18,6 @@ class UEzrealAnimInstance;
 /**
  * 
  */
-UENUM()
-enum class EChampionState : uint8
-{
-	NON,
-	IDLE,
-	ROTATE,
-	MOVE,
-	ATTACK,
-	SKILL,
-	MAX
-};
 
 UCLASS()
 class INABYSS_API AEzreal : public ACharacterBase
@@ -41,25 +31,14 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	
-
-	UFUNCTION()
-	void QStarted(const FInputActionValue& Value);
-	UFUNCTION(Server, Reliable)
-	void ServerRPC_Q();
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiRPC_Q();
-
-	
 	
 private:
-	// Animation
-	UEzrealAnimInstance* AnimInstance;
 	
 	// Component
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UFSMComponent* FSMComponent;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	USkillComponent* SkillComponent;
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UStateComponentBase* StateComponent;
 	
@@ -72,7 +51,4 @@ private:
 	// Input
 	UPROPERTY(EditDefaultsOnly, Category = "Input", Meta = (AllowPrivateAccess))
 	UInputMappingContext* DefaultIMC;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Input", Meta = (AllowPrivateAccess))
-	UInputAction* IA_Q;
 };

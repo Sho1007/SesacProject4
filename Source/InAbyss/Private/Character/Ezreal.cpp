@@ -5,13 +5,11 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "AnimInstance/EzrealAnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Component/FSMComponent.h"
+#include "Component/SkillComponent.h"
 #include "Component/StateComponentBase.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
 
 AEzreal::AEzreal()
 {
@@ -28,14 +26,14 @@ AEzreal::AEzreal()
 	
 	FSMComponent = CreateDefaultSubobject<UFSMComponent>(TEXT("FSMComponent"));
 	FSMComponent->SetIsReplicated(true);
+
+	SkillComponent = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComponent"));
+	SkillComponent->SetIsReplicated(true);
 }
 
 void AEzreal::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// AnimInstance Init
-	AnimInstance = Cast<UEzrealAnimInstance>(GetMesh()->GetAnimInstance());
 
 	// Enhanced Input
 	if (IsLocallyControlled() && DefaultIMC)
@@ -54,11 +52,6 @@ void AEzreal::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-void AEzreal::MultiRPC_Q_Implementation()
-{
-	AnimInstance->SetQReady();
-}
-
 void AEzreal::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -67,9 +60,8 @@ void AEzreal::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(IA_Q, ETriggerEvent::Started, this, &AEzreal::QStarted);
-
 		FSMComponent->SetupPlayerInputComponent(EnhancedInputComponent);
+		SkillComponent->SetupPlayerInputComponent(EnhancedInputComponent);
 	}
 }
 
@@ -77,23 +69,4 @@ void AEzreal::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-}
-
-void AEzreal::ServerRPC_Q_Implementation()
-{
-	MultiRPC_Q();
-}
-
-void AEzreal::QStarted(const FInputActionValue& Value)
-{
-	// Destination = GetActorLocation();
-	if (HasAuthority())
-	{
-		// OnRep_Destination();
-		ServerRPC_Q_Implementation();
-	}
-	else
-	{
-		ServerRPC_Q();
-	}
 }

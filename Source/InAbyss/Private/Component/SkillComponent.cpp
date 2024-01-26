@@ -3,6 +3,12 @@
 
 #include "Component/SkillComponent.h"
 
+#include "EnhancedInputComponent.h"
+#include "AnimInstance/EzrealAnimInstance.h"
+#include "GameFramework/Character.h"
+
+#include "Component/FSMComponent.h" 
+
 // Sets default values for this component's properties
 USkillComponent::USkillComponent()
 {
@@ -13,15 +19,48 @@ USkillComponent::USkillComponent()
 	// ...
 }
 
+void USkillComponent::SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInputComponent)
+{
+	EnhancedInputComponent->BindAction(IA_Q, ETriggerEvent::Started, this, &USkillComponent::QStarted);
+}
+
+void USkillComponent::QStarted(const FInputActionValue& Value)
+{
+	// Destination = GetActorLocation();
+	if (GetOwner()->HasAuthority())
+	{
+		// OnRep_Destination();
+		ServerRPC_Q_Implementation();
+	}
+	else
+	{
+		ServerRPC_Q();
+	}
+}
+
+void USkillComponent::ServerRPC_Q_Implementation()
+{
+	MultiRPC_Q();
+}
+
+void USkillComponent::MultiRPC_Q_Implementation()
+{
+}
+
 // Called when the game starts
 void USkillComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	// ...
-	
-}
 
+	// AnimInstance Init
+	AnimInstance = Cast<UEzrealAnimInstance>(GetOwner<ACharacter>()->GetMesh()->GetAnimInstance());
+	if (GetOwner()->HasAuthority() == true)
+	{
+		FSMComponent = GetOwner()->GetComponentByClass<UFSMComponent>();
+	}
+}
 
 // Called every frame
 void USkillComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -30,4 +69,3 @@ void USkillComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 	// ...
 }
-

@@ -9,7 +9,7 @@
 
 enum class EFactionType : uint8;
 class AMinionBase;
-
+class UStateComponentBase;
 UCLASS( Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INABYSS_API UMinionSpawnComponent : public UActorComponent
 {
@@ -52,15 +52,17 @@ protected:
 	float MinionSpawnTime = 5.0f;
 	UPROPERTY(VisibleInstanceOnly)
 	float CurrentMinionSpawnTime = 0.f;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AMinionBase> MeleeMinionClass;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AMinionBase> CasterMinionClass;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AMinionBase> SiegeMinionClass;
 
-	UPROPERTY(EditInstanceOnly, Meta = (MakeEditWidget))
-	FVector SpawnLocation;
+	UPROPERTY(EditInstanceOnly)
+	AActor* SpawnPoint;
+	UPROPERTY(EditInstanceOnly)
+	TArray<AActor*> WayPointArray;
 
 	// ObjectPool
 	bool bSuperMinionSpawned = false;
@@ -77,4 +79,6 @@ protected:
 	TArray<AMinionBase*> CasterMinionObjectPool;
 	UPROPERTY(VisibleInstanceOnly)
 	TArray<AMinionBase*> SiegeMinionObjectPool;
+
+	UStateComponentBase* NexusStateComponent;
 };

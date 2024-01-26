@@ -18,7 +18,6 @@ UFSMComponent::UFSMComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	// ...
 }
 
 void UFSMComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -26,6 +25,7 @@ void UFSMComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UFSMComponent, Destination);
+	DOREPLIFETIME(UFSMComponent, bIsMove);
 }
 
 
@@ -37,7 +37,7 @@ void UFSMComponent::BeginPlay()
 	// ...
 
 	// Todo : Have to Change Owenr Type To ACharacterBase After.
-	Owner = GetOwner<AEzreal>();
+	Owner = GetOwner<ACharacter>();
 
 	// Find Other Component
 	StateComponent = Owner->GetComponentByClass<UStateComponentBase>();
@@ -45,7 +45,29 @@ void UFSMComponent::BeginPlay()
 	if (Owner->IsLocallyControlled())
 	{
 		PlayerController = Owner->GetController<APlayerController>();
-		LocalPlayer = PlayerController->GetLocalPlayer();
+		if (PlayerController)
+		{
+			LocalPlayer = PlayerController->GetLocalPlayer();
+		}
+	}
+}
+
+void UFSMComponent::FindEnemy()
+{
+	float SearchRadius = 200.f;
+	TArray<FOverlapResult> OutOverlaps;
+	FCollisionQueryParams Params;
+
+	DrawDebugSphere(GetWorld(), Owner->GetActorLocation(), SearchRadius, 20, FColor::Black,
+		false, 5.0f, 0, 3);
+	
+	if (GetWorld()->OverlapMultiByProfile(OutOverlaps, Owner->GetActorLocation(), Owner->GetActorRotation().Quaternion(), FName("Object"),
+		FCollisionShape::MakeSphere(SearchRadius), Params))
+	{
+		for (auto Iter : OutOverlaps)
+		{
+			PRINTLOG(TEXT("Overlapped Actor %s"), *Iter.GetActor()->GetActorNameOrLabel()); 
+		}
 	}
 }
 
@@ -54,39 +76,92 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (PlayerController)
+	{
+		FHitResult HitResult;
+
+		bIsCursored = PlayerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), false, HitResult);
+		if (bIsCursored)
+		{
+			if (UStateComponentBase* HitStateComponent =  HitResult.GetActor()->GetComponentByClass<UStateComponentBase>())
+			{
+				if (HitStateComponent->GetFactionType() == StateComponent->GetFactionType())
+				{
+					CursoredTarget = nullptr;
+					CursoredLocation = HitResult.Location;
+				}
+				else
+				{
+					CursoredTarget = HitResult.GetActor();
+				}
+			}
+			else
+			{
+				CursoredTarget = nullptr;
+				CursoredLocation = HitResult.Location;
+			}
+		}
+	}
+
 	// ...
-
 	
-	// FString DebugText = TEXT("Owner : ") + Owner->GetActorNameOrLabel() + TEXT("\n");
-	// DebugText += TEXT("LocalRole : ") + UEnum::GetValueAsString<ENetRole>(Owner->GetLocalRole()) + TEXT("\n");
-	// DebugText += TEXT("RemoteRole : ") + UEnum::GetValueAsString<ENetRole>(Owner->GetRemoteRole()) + TEXT("\n");
-	// DrawDebugString(GetWorld(), FVector(), DebugText, Owner, FColor::Yellow,
-	// 	0.01);
-	
-	Rotate(DeltaTime);
-
-	// PRINTLOG(TEXT("Character : %s"), *Owner->GetActorNameOrLabel());
-
-	FVector MoveDirection =  Destination - Owner->GetActorLocation();
-	MoveDirection.Z = 0.f;
-	if (MoveDirection.Length() > ReachSuccessDistance)
+	switch (ChampionState)
 	{
-		bIsMove = true;
-		MoveDirection.Normalize();
+	case EChampionState::IDLE:
+		// Todo : 가만히 있을 때 적이 다가오면, 공격하나? 하면 SphereComponent 써야할듯
+		break;
+	case EChampionState::ROTATE:
+		{
+			if (Rotate(DeltaTime))
+			{
+				CurrentRotationTime = 0.f;
 
-		Owner->AddMovementInput(MoveDirection, MoveSpeed * DeltaTime);
-	}
-	else
-	{
-		bIsMove = false;
-	}
 
-	if (Owner->IsLocallyControlled() == false) return;
-
-	// GetMousePos
-	if (LocalPlayer->ViewportClient->GetMousePosition(MousePosition))
-	{
-		UGameplayStatics::DeprojectScreenToWorld(PlayerController, MousePosition, WorldOrigin, WorldDirection);
+				if (Owner->HasAuthority() == false) return;
+				
+				if (Target == nullptr)
+				{
+					ChampionState = EChampionState::MOVE;
+				}
+				else
+				{
+					ChampionState = EChampionState::ATTACK;
+				}
+			}
+		}
+		break;
+	case EChampionState::MOVE:
+		{
+			Rotate(DeltaTime);
+			FVector MoveDirection =  Destination - Owner->GetActorLocation();
+			MoveDirection.Z = 0.f;
+			if (MoveDirection.Length() > ReachSuccessDistance)
+			{
+				MoveDirection.Normalize();
+				Owner->AddMovementInput(MoveDirection, MoveSpeed * DeltaTime);
+				if (Owner->HasAuthority() == false) return;
+				bIsMove = true;
+			}
+			else
+			{
+				if (Owner->HasAuthority() == false) return;
+				bIsMove = false;
+				ChampionState = EChampionState::IDLE;
+				FindEnemy();
+			}
+		}
+		break;
+	case EChampionState::ATTACK:
+		
+		/* Todo 
+		if (Target && TargetComponent->IsDead())
+		if (bIsAttacking == false)
+		{
+		}
+		*/
+		break;
+	case EChampionState::SKILL:
+		break;
 	}
 }
 
@@ -100,35 +175,29 @@ bool UFSMComponent::Rotate(float DeltaTime)
 {
 	CurrentRotationTime += DeltaTime;
 
-	Owner->SetActorRotation(FMath::RInterpTo(FromRotation, ToRotation, CurrentRotationTime, RotationSpeed));
+	Owner->SetActorRotation(FMath::RInterpTo(Owner->GetActorRotation(), ToRotation, CurrentRotationTime, RotationSpeed));
+
 	
-	return ToRotation == Owner->GetActorRotation();
+	return ToRotation.Equals(Owner->GetActorRotation());
 }
 
 void UFSMComponent::RightClickStarted(const FInputActionValue& Value)
 {
 	if (Owner->HasAuthority() == true)
 	{
-		ServerRPC_RightClickStarted_Implementation(WorldOrigin, WorldDirection);
 	}
 	else
 	{
-		ServerRPC_RightClickStarted(WorldOrigin, WorldDirection);
 	}
 }
 
 void UFSMComponent::ServerRPC_RightClickStarted_Implementation(FVector NewWorldOrigin, FVector NewWorldDirection)
 {
-	// PRINTLOG(TEXT("WorldOrigin : %s, WorldDirection : %s"), *NewWorldOrigin.ToString(), *NewWorldDirection.ToString());
-	
-	FHitResult HitResult;
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, NewWorldOrigin,
-	NewWorldOrigin + NewWorldDirection * 100'000, ECC_Visibility))
-	{
-		// PRINTLOG(TEXT("DebugPoint 1"));
-		Destination = HitResult.Location;
-		OnRep_Destination();
-	}
+}
+
+void UFSMComponent::SetShouldStop(bool bNewShouldStop)
+{
+	bShouldStop = bNewShouldStop;
 }
 
 bool UFSMComponent::IsMove() const
@@ -138,38 +207,19 @@ bool UFSMComponent::IsMove() const
 
 void UFSMComponent::OnRep_Destination()
 {
-	if (Owner->IsLocallyControlled())
+	ACharacter* CurrentOwner = Cast<ACharacter>(GetOwner());
+
+	if (CurrentOwner->IsLocallyControlled())
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Cursor, Destination);
 	}
-	Destination.Z = Owner->GetActorLocation().Z;
-	// PRINTLOG(TEXT("Destinantion : %s"), *Destination.ToString());
+
+	Target = nullptr;
+	
+	Destination.Z = CurrentOwner->GetActorLocation().Z;
 
 	CurrentRotationTime = 0.f;
-	
-	FromRotation = Owner->GetActorRotation();
-	ToRotation =  FRotationMatrix::MakeFromX((Destination - Owner->GetActorLocation()).GetSafeNormal()).Rotator();
+	FromRotation = CurrentOwner->GetActorRotation();
+	ToRotation =  FRotationMatrix::MakeFromX((Destination - CurrentOwner->GetActorLocation()).GetSafeNormal()).Rotator();
+	ChampionState = EChampionState::MOVE;
 }
-
-// void UFSMComponent::ServerRPC_RightClickStarted_Implementation(FVector NewWorldOrigin, FVector NewWorldDirection)
-// {
-// 	PRINTLOG(TEXT(""));
-// 	FHitResult HitResult;
-// 	if (GetWorld()->LineTraceSingleByChannel(HitResult, WorldOrigin,
-// 		NewWorldOrigin + NewWorldDirection * 100'000, ECC_Visibility))
-// 	{
-// 		if (UStateComponentBase* HitStateComponent = HitResult.GetActor()->GetComponentByClass<UStateComponentBase>())
-// 		{
-// 			if (HitStateComponent->GetFactionType() != StateComponent->GetFactionType())
-// 			{
-// 				// Todo Set Target;
-// 				return;
-// 			}
-// 		} 
-//
-// 		Destination = HitResult.Location;
-// 		PRINTLOG(TEXT("Destinantion : %s"), *Destination.ToString());
-// 		OnRep_Destination();
-// 		// MultiRPC_SetDestination(HitResult.Location);
-// 	}
-// }
