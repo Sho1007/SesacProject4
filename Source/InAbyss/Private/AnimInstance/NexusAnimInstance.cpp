@@ -16,4 +16,8 @@ void UNexusAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
+	if (Owner && Owner->BuildingState == EBuildingState::Destroy) {
+		bIsDeath = true;
+	}
+
 }

@@ -39,14 +39,12 @@ AGaren::AGaren()
 	// 공격 범위 콜리전
 	AttackRange = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRange"));
 	AttackRange->SetupAttachment(RootComponent);
-	AttackRange->SetSphereRadius(180);
+	AttackRange->SetSphereRadius(230);
 
 	// 이펙트 컴포넌트
 	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
 	NSComp->SetupAttachment(RootComponent);
 	NSComp->SetRelativeScale3D(FVector(1));
-
-
 
 }
 
@@ -89,19 +87,12 @@ void AGaren::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/* 로그
-	UE_LOG(LogTemp, Warning, TEXT("CurrentRotation: %s"), *CurrentRotation.ToString());
-
-	UE_LOG(LogTemp, Warning, TEXT("GetActorRotation: %s"), *GetActorRotation().ToString());
-
-	UE_LOG(LogTemp, Warning, TEXT("NewRotation: %s"), *TurnRotation.ToString());
-	*/
-
 	switch (GarenState)
 	{
 	case EGarenState::IDLE:
 
 		//GarenAnim->PlayANM_Idle();
+
 
 		// 공격 범위 안에 적이 들어오면 공격으로 전환
 
@@ -111,10 +102,16 @@ void AGaren::Tick(float DeltaTime)
 		//GarenAnim->PlayANM_Move();
 		Move_Garen();
 
+		if (GarenAnim->bIsSkilling_E == true) {
+			break;
+
+		}
+
 		// 지정된 타겟이 있을 경우, 거리 안에 들어오면 Attack으로 전환
 		if (Target_Minion && GarenState != EGarenState::ATTACK) {
 			//오차범위 이내이면 상태를 ATTACK로 전환
 			if (FVector::Dist(this->GetActorLocation(), Target_Minion->GetActorLocation()) <= 250) {
+
 				GarenState = EGarenState::ATTACK;
 			}
 
@@ -137,6 +134,19 @@ void AGaren::Tick(float DeltaTime)
 		break;
 	case EGarenState::ATTACK:
 
+		if (Target_Minion && Target_Minion->GetComponentByClass<UStateComponentBase>()->IsDead() == true) {
+			GarenState = EGarenState::IDLE;
+
+		}
+		else if (Target_Champion && Target_Champion->GetComponentByClass<UStateComponentBase>()->IsDead() == true) {
+			GarenState = EGarenState::IDLE;
+
+		}
+		else if (Target_Building && Target_Building->GetComponentByClass<UStateComponentBase>()->IsDead() == true) {
+			GarenState = EGarenState::IDLE;
+
+		}
+
 		GarenAnim->PlayANM_Attack();
 
 		// 지정된 적이 공격 범위 밖으로 나가면 적을 쫓아감 - move로 전환
@@ -144,6 +154,31 @@ void AGaren::Tick(float DeltaTime)
 		break;
 	}
 
+	
+
+
+	if (bIs_R_Move) {
+
+		// 이동 기능
+		//Move_Garen();
+		GarenState = EGarenState::MOVE;
+
+		if (FVector::Dist(GetActorLocation(), Target_Champion->GetActorLocation()) <= 500) { // 대상이 거리 안에 있다면
+
+			bIs_R_Move = false;
+
+			GarenAnim->PlayANM_R();
+
+			/*
+			if (Target_Champion->GetComponentByClass<UStateComponentBase>()->IsDead() == false) {
+				GarenAnim->StopAllMontages(0.f);
+				GarenState = EGarenState::MOVE;
+
+			}
+			*/
+		}
+
+	}
 
 	Turn_Garen();
 
@@ -187,19 +222,20 @@ void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 
 	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
+
+
 		// 공격 범위에 들어온 액터를 배열에 저장
 		Targets_Attack.Add(OtherActor);
 
+		
 		// 해당 OtherActor를 공격하도록 함
 
+		/*
 		for (AActor* Target : Targets_Attack) {
 			UE_LOG(LogTemp, Warning, TEXT("Begin : Target Actor: %s"), *Target->GetName());
 		}
-
+		*/
 	}
-
-
-
 
 }
 
@@ -211,12 +247,12 @@ void AGaren::NotifyActorEndOverlap(AActor* OtherActor)
 		// 배열에서 삭제
 		Targets_Attack.Remove(OtherActor);
 
+		/*
 		for (AActor* Target : Targets_Attack) {
 			UE_LOG(LogTemp, Warning, TEXT("End : Target Actor: %s"), *Target->GetName());
 		}
-
+		*/
 	}
-
 
 }
 
@@ -237,10 +273,13 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 		return;
 	}
 
-	GarenAnim->StopAllMontages(0.f);
-	GarenAnim->AnimNotify_EndAttack_Garen(); // 다시 공격할 수 있도록 초기화
+	if (GarenAnim->bIsSkilling_E == false)
+	{
+		GarenAnim->StopAllMontages(0.f);
+		//GarenAnim->AnimNotify_EndAttack_Garen(); // 다시 공격할 수 있도록 초기화
+		GarenAnim->bIsAttack_Garen = false;
 
-
+	}
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
@@ -258,11 +297,6 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	if (Target_Building) {
 		Target_Building = nullptr;
 	}
-
-	// 클린된 액터가 있다면 삭제
-	/*if (MouseHitActor) {
-		MouseHitActor = nullptr;
-	}*/
 
 	// 마우스로 클릭한 위치의 정보를 담기 위한 기능
 	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
@@ -288,23 +322,24 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 		// 저장된 액터의 스테이트 컴포넌트를 저장
 		UStateComponentBase* StateComponentBase = MouseHitActor->GetComponentByClass<UStateComponentBase>();
 
-		// 만약 같은 팀이 아니라면
-		if (StateComponentBase && StateComponentBase->GetFactionType() != StateComp_Garen->GetFactionType()) {
+		// 만약 같은 팀이 아니고, 죽은 상태가 아니라면
+		if (StateComponentBase && StateComponentBase->GetFactionType() != StateComp_Garen->GetFactionType() && StateComponentBase->IsDead() == false) {
 
 			// 각 액터의 종류에 따라 변수 저장
-			if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::MINION || MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
+			if (StateComponentBase->GetObjectType() == EObjectType::MINION || StateComponentBase->GetObjectType() == EObjectType::SUPERMINION) {
 				Target_Minion = Cast<AMinionBase>(MouseHitActor); // 공격대상이 미니언이라면
 
 			}
-			else if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
+			else if (StateComponentBase->GetObjectType() == EObjectType::CHAMPION) {
 				Target_Champion = Cast<ACharacter>(MouseHitActor); // 공격대상이 챔피언이라면
 
 			}
-			else if (MouseHitActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::BUILDING) {
+			else if (StateComponentBase->GetObjectType() == EObjectType::BUILDING) {
 				Target_Building = Cast<ABuilding_Base>(MouseHitActor); // 공격대상이 타워라면
 
 			}
 
+			/*
 			// 로그 - 임시
 			if (Target_Minion) {
 				UE_LOG(LogTemp, Warning, TEXT("Target_Minion : %s"), *Target_Minion->GetName());
@@ -316,6 +351,7 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 				UE_LOG(LogTemp, Warning, TEXT("Target_Building : %s"), *Target_Building->GetName());
 
 			}
+			*/
 
 		}
 
@@ -333,9 +369,6 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 
 	}
 
-	// 이동 함수 호출
-	//UE_LOG(LogTemp, Warning, TEXT("==========================================="));
-
 }
 
 void AGaren::MouseRightClick_Triggered(const FInputActionValue& value)
@@ -347,76 +380,15 @@ void AGaren::MouseRightClick_Triggered(const FInputActionValue& value)
 
 void AGaren::MouseLeftClick(const FInputActionValue& value)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Left"));
-	// 특정 스킬을 사용한 경우, 대상을 지정해야 할 때 사용한다. 
-
 	// R스킬 활성화 시에만 사용할 수 있도록 함
-	if (GarenAnim->bIsSkill_R == false) {
+	if (GarenAnim->bIsSkill_R) {
+
+		R_Skill_Garen();
+
 		return;
 	}
 
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (!PlayerController)
-	{
-		return;
-	}
-
-	GarenState = EGarenState::IDLE;
-
-	// 마우스로 클릭한 위치의 정보를 담기 위한 기능
-	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
-
-		CursorPlace = HitInfo.Location;
-		CursorPlace.Z = 0.f;
-
-		// 클릭한 대상이 스테이터스 컴포넌트가 없으면 종료
-		if (!HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>()) {
-			return;
-		}
-
-		// 클릭한 캐릭터가 스킬 범위 안에 있다면
-		if (FVector::Dist(GetActorLocation(), HitInfo.GetActor()->GetActorLocation()) <= 500) {
-
-
-			// R 스킬 사용 대상을 지정
-			if (HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::CHAMPION) {
-
-				Target_Champion = Cast<ACharacter>(HitInfo.GetActor());
-
-				// 원하는 함수 호출
-
-				//Turn_Garen();
-
-				GarenAnim->PlayANM_R();
-
-			}
-
-		}
-		else if (FVector::Dist(GetActorLocation(), HitInfo.GetActor()->GetActorLocation()) >= 500) {
-			// 캐릭터를 대상이 스킬 범위에 들어올 때까지 이동
-
-			/*
-			// 캐릭터의 현재 위치를 저장
-			FVector ActorLocatoin = GetActorLocation();
-			ActorLocatoin.Z = 0.f;
-			// 지정된 위치의 방향을 설정
-			FVector Direction = (HitInfo.GetActor()->GetActorLocation() - ActorLocatoin).GetSafeNormal();
-
-			// 캐릭터의 위치를 이동
-			AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
-
-			if (FVector::Dist(GetActorLocation(), HitInfo.GetActor()->GetActorLocation()) >= 500) {
-
-				MouseLeftClick(true);
-
-			}
-			*/
-
-		}
-
-
-		
-	}
+	
 
 }
 
@@ -441,14 +413,19 @@ void AGaren::KeyBoard_W(const FInputActionValue& value)
 	//NSComp->SetVisibility(true);
 
 	// W 스킬 이펙트 스폰
+	if (NSComp) {
+		NSComp->Activate();
+	}
 
-
+	// 현재 3초 뒤 자동으로 비활성화 되도록 설정되어 있음
+	//NSComp->Deactivate();
 }
 
 void AGaren::KeyBoard_E(const FInputActionValue& value)
 {
 
 	GarenAnim->PlayANM_E();
+
 }
 
 void AGaren::KeyBoard_R(const FInputActionValue& value)
@@ -459,28 +436,18 @@ void AGaren::KeyBoard_R(const FInputActionValue& value)
 
 
 	// 스킬 범위를 이펙트로 표시
-
-
-
 	// 마우스 커서 변경
-
-
-
-
 
 }
 
 void AGaren::KeyBoard_SpaceBar(const FInputActionValue& value)
 {
+
 }
 
 void AGaren::Move_Garen() // 가렌의 이동
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Move_Success"));
-
 	// 지정된 위치로 이동한다. 
-
-
 
 	// 캐릭터의 현재 위치를 저장
 	FVector ActorLocatoin = GetActorLocation();
@@ -495,34 +462,6 @@ void AGaren::Move_Garen() // 가렌의 이동
 
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
-
-	/*
-	// 지정된 타겟이 있을 경우, 거리 안에 들어오면 Attack으로 전환
-	if (Target_Minion) {
-		//오차범위 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Minion->GetActorLocation()) <= 250) {
-			GarenState = EGarenState::ATTACK;
-		}
-		return;
-
-	}
-	else if (Target_Champion) {
-		//오차범위 10 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Champion->GetActorLocation()) <= 250) {
-			GarenState = EGarenState::ATTACK;
-		}
-		return;
-
-	}
-	else if (Target_Building) {
-		//오차범위 10 이내이면 상태를 ATTACK로 전환
-		if (FVector::Dist(ActorLocatoin, Target_Building->GetActorLocation()) <= 400) {
-			GarenState = EGarenState::ATTACK;
-		}
-		return;
-
-	}
-	*/
 
 	// 지정한 위치 도착시, 오차범위 10 이내이면 상태를 IDLE로 전환
 	if (FVector::Dist(ActorLocatoin, CursorPlace) <= 10) {
@@ -602,6 +541,122 @@ void AGaren::Attack_Normal_Garen()
 	}
 }
 
+void AGaren::Q_Skill_Garen()
+{
+
+}
+
+void AGaren::W_Skill_Garen()
+{
+
+}
+
+void AGaren::E_Skill_Garen()
+{
+
+	for (AActor* Actor : Targets_Attack) {
+
+
+		if (Actor->GetComponentByClass<UStateComponentBase>()) {
+
+			UStateComponentBase* StateComp = Actor->GetComponentByClass<UStateComponentBase>();
+
+			if (StateComp->GetObjectType() == EObjectType::CHAMPION || StateComp->GetObjectType() == EObjectType::MINION || StateComp->GetObjectType() == EObjectType::SUPERMINION) {
+
+				if (FVector::Dist(GetActorLocation(), Actor->GetActorLocation()) <= 300 && StateComp->IsDead() == false) {
+					StateComp->ApplyDamage(StateComp_Garen->GetAttackDamage(), StateComp_Garen->GetAbilityPower());
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+void AGaren::R_Skill_Garen()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	GarenState = EGarenState::IDLE;
+
+	// 마우스로 클릭한 위치의 정보를 담기 위한 기능
+	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitInfo)) {
+
+		CursorPlace = HitInfo.Location;
+		CursorPlace.Z = 0.f;
+
+		// 클릭한 대상이 스테이터스 컴포넌트가 없으면 종료
+		if (HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>() == nullptr) {
+			return;
+		}
+
+		// 저장된 액터의 스테이트 컴포넌트를 저장
+		UStateComponentBase* StateComponentBase = HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>();
+
+		// 클릭한 대상이 챔피언이라면 타겟으로 저장
+		if (StateComponentBase->GetObjectType() == EObjectType::CHAMPION) {
+
+			Target_Champion = Cast<ACharacter>(HitInfo.GetActor());
+
+		}
+		else { // 챔피언이 아니라면 종료
+
+			HitInfo.Reset();
+			StateComponentBase = nullptr;
+			Target_Champion = nullptr;
+			GarenAnim->bIsSkilling_R = false;
+			GarenAnim->bIsSkill_R = false;
+
+			return;
+		}
+
+		if (FVector::Dist(GetActorLocation(), Target_Champion->GetActorLocation()) <= 500) { // 대상이 거리 안에 있다면
+			// 스킬 사용
+			GarenAnim->PlayANM_R();
+
+		}
+		else if (FVector::Dist(GetActorLocation(), Target_Champion->GetActorLocation()) >= 500 && bIs_R_Move == false) { // 대상이 거리 안에 없다면
+			// 대상이 있는 곳까지 이동
+
+			bIs_R_Move = true;
+
+		}
+
+	}
+}
+
+void AGaren::R_Move()
+{
+
+}
+
+void AGaren::Damaged()
+{
+	// 피격시 가렌의 체력이 남아있을 때
+
+
+}
+
+void AGaren::Die()
+{
+	// 피격시 가렌의 체력이 0이하 일 때
+	GarenAnim->PlayANM_Dead();
+	GarenState = EGarenState::DEAD;
+
+	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
+
+	// 죽고 난 후에는 마우스의 클릭에 캐릭터가 반응하지 않도록 해야 함
+
+}
+
+
 /*
 이동 - 마우스로 클릭한 지점의 위치값을 가져온다.
 해당 위치 값으로 캐릭터가 이동하도록 한다.
@@ -624,23 +679,3 @@ void AGaren::Attack_Normal_Garen()
 	- 캐릭터가 IDLE상태일 때, 적이 공격 거리 안에 들어온 경우, 타겟으로 삼고 공격을 한다.
 
 */
-
-void AGaren::Damaged()
-{
-	// 피격시 가렌의 체력이 남아있을 때
-
-
-}
-
-void AGaren::Die()
-{
-	// 피격시 가렌의 체력이 0이하 일 때
-	GarenAnim->PlayANM_Dead();
-	GarenState = EGarenState::DEAD;
-
-
-	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
-
-	// 죽고 난 후에는 마우스의 클릭에 캐릭터가 반응하지 않도록 해야 함
-
-}

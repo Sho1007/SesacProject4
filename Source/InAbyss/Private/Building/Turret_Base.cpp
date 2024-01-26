@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Enemy/MinionBase.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/Character.h>
+#include <../../../../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h>
 
 ATurret_Base::ATurret_Base()
 {
@@ -23,6 +24,12 @@ ATurret_Base::ATurret_Base()
 	AttackStartPointComp = CreateDefaultSubobject<USceneComponent>(TEXT("AttackStartPointComp"));
 	AttackStartPointComp->SetupAttachment(RootComponent);
 	AttackStartPointComp->SetRelativeLocation(FVector(50, 160, 590));
+
+
+	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
+	NSComp->SetupAttachment(AttackStartPointComp);
+	NSComp->SetRelativeScale3D(FVector(0.01f));
+
 
 	//UE_LOG(LogTemp, Warning, TEXT("New Play Log========================================================"));
 
@@ -113,6 +120,19 @@ void ATurret_Base::Tick(float DeltaTime)
 	// 공격기능
 	// 만약 공격대상이 지정되어 있다면
 	if (CurrentTarget) {
+
+		if (CurrentTarget->GetComponentByClass<UStateComponentBase>() == nullptr) {
+			return;
+		}
+
+		UStateComponentBase* StateComp = CurrentTarget->GetComponentByClass<UStateComponentBase>();
+		if (StateComp->IsDead() == true) {
+			CurrentTarget = nullptr;
+			BuildingState = EBuildingState::IDLE;
+
+			return;
+		}
+
 
 		BuildingState = EBuildingState::Attack;
 
@@ -214,8 +234,8 @@ void ATurret_Base::NotifyActorBeginOverlap(AActor* OtherActor)
 	*/
 
 	// 상태 컴포넌트를 갖고 있고, 같은 팀이 아니라면
-	if (OtherActor->GetComponentByClass<UStateComponentBase>() && 
-	OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
+	if (OtherActor->GetComponentByClass<UStateComponentBase>() &&
+		OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
 
 		if (OtherActor->GetComponentByClass<UStateComponentBase>()->GetObjectType() == EObjectType::SUPERMINION) {
 			DetectTargets_SuperOrCanon.Add(OtherActor);
@@ -499,7 +519,7 @@ void ATurret_Base::RetargetCurrentTarget()
 
 
 	/*
-	// 남아있는 배열이 있다면, 우선순위에 따라 해당 배열의 0번 인덱스를 공격 대상으로 함 
+	// 남아있는 배열이 있다면, 우선순위에 따라 해당 배열의 0번 인덱스를 공격 대상으로 함
 	// 1. 슈퍼/공성 미니언 ==== 2.전사 미니언 ==== 3. 마법사 미니언 ==== 4. 적 챔피언
 	if (DetectTargets_SuperOrCanon.Num() > 0) {
 		CurrentTarget = DetectTargets_SuperOrCanon[0];
@@ -521,6 +541,8 @@ void ATurret_Base::RetargetCurrentTarget()
 
 void ATurret_Base::Attact_SpawnProjectile()
 {
+
+	NSComp->Activate();
 
 	// 발사체를 스폰해야 함 - 공격 자체는 발사체가 타겟을 따라가는 방식으로 이루어질 것
 	AProjectile_Turret* NewProjectile = GetWorld()->SpawnActor<AProjectile_Turret>(ProjectileFactory, AttackStartPointComp->GetComponentTransform());

@@ -3,6 +3,7 @@
 
 #include "AnimInstance/GarenAnimInstance.h"
 #include "Character/Garen.h"
+#include "Component/StateComponentBase.h"
 
 void UGarenAnimInstance::NativeBeginPlay()
 {
@@ -110,12 +111,11 @@ void UGarenAnimInstance::PlayANM_Attack()
 			{
 				Montage_Play(ANM_Attack_Array[IndexNumber]);
 
-				IndexNumber += 1;
 			}
 			
 
 		}
-		// 일반 공격 중일 때 // 스킬이 활성화 되있고 // 스킬 사용중이 아니라면
+		// 일반 공격 중일 때 // Q스킬이 활성화 되있고 // 스킬 사용중이 아니라면
 		else if (bIsAttack_Garen == true && bIsSkill_Q == true && bIsSkilling_Q == false) {
 			StopAllMontages(0.f);
 			PlayANM_Q();
@@ -144,7 +144,16 @@ void UGarenAnimInstance::PlayANM_E()
 {
 
 	if (ANM_Skill_E) {
-		Montage_Play(ANM_Skill_E);
+		
+		if (bIsSkilling_E == false) {
+
+			Montage_Play(ANM_Skill_E);
+
+			bIsSkilling_E = true;
+			
+		}
+
+		
 	}
 }
 void UGarenAnimInstance::PlayANM_R()
@@ -153,11 +162,10 @@ void UGarenAnimInstance::PlayANM_R()
 	if (ANM_Skill_R) {
 		
 		if (bIsSkilling_R == false) {
-			
-			bIsSkilling_R = true;
 
 			Montage_Play(ANM_Skill_R);
 		
+			bIsSkilling_R = true;
 		
 		}
 
@@ -170,6 +178,12 @@ void UGarenAnimInstance::PlayANM_R()
 void UGarenAnimInstance::AnimNotify_Attack_Garen()
 {
 	Owner->Attack_Normal_Garen();
+
+	IndexNumber += 1;
+
+	if (IndexNumber >= ANM_Attack_Array.Num()) {
+		IndexNumber = 0;
+	}
 }
 
 void UGarenAnimInstance::AnimNotify_EndAttack_Garen()
@@ -177,10 +191,7 @@ void UGarenAnimInstance::AnimNotify_EndAttack_Garen()
 	// 공격 애니메이션 호출하는 동안 다시 애니메이션이 호출되지 않고, 끝나면 다시 공격 애니메이션을 호출하도록
 
 	//UE_LOG(LogTemp, Warning, TEXT("CALLCALLCALLCALLCALL"));
-
-	if (IndexNumber >= ANM_Attack_Array.Num()) {
-		IndexNumber = 0;
-	}
+	
 
 	bIsAttack_Garen = false;
 
@@ -203,6 +214,26 @@ void UGarenAnimInstance::AnimNotify_EndSkill_Q()
 	Owner->Speed = 300;
 }
 
+void UGarenAnimInstance::AnimNotify_Skill_E()
+{
+	//Owner->Attack_Normal_Garen(); // 임시
+	
+	
+	Owner->E_Skill_Garen();
+
+
+}
+
+void UGarenAnimInstance::AnimNotify_EndSkill_E()
+{
+	
+	bIsSkilling_E = false;
+	bIsSkill_E = false;
+
+
+}
+	
+
 void UGarenAnimInstance::AnimNotify_Skill_R()
 {
 	// 지정한 대상에게 데미지 - 적 챔피언 한정
@@ -213,8 +244,14 @@ void UGarenAnimInstance::AnimNotify_Skill_R()
 
 void UGarenAnimInstance::AnimNotify_EndSkill_R()
 {
-	
 	bIsSkill_R = false; // 
 	bIsSkilling_R = false; // 
+
+
+	if (Owner->Target_Champion->GetComponentByClass<UStateComponentBase>()->IsDead() == false) {
+		//StopAllMontages(0.f);
+		Owner->GarenState = EGarenState::MOVE;
+
+	}
 
 }

@@ -8,6 +8,7 @@
 #include "Building/Turret_Base.h"
 #include "Enemy/MinionBase.h"
 #include "Component/StateComponentBase.h"
+#include <../../../../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h>
 
 // Sets default values
 AProjectile_Turret::AProjectile_Turret()
@@ -18,6 +19,9 @@ AProjectile_Turret::AProjectile_Turret()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
 	SetRootComponent(CollisionComp);
 
+
+
+	/*
 	// 나중에는 Mesh는 빼고 이펙트만 남겨도 될 듯
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	MeshComp->SetupAttachment(RootComponent);
@@ -25,6 +29,13 @@ AProjectile_Turret::AProjectile_Turret()
 	// 블루프린트에서 이펙트 설정 필요
 	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
 	ParticleComp->SetupAttachment(RootComponent);
+	*/
+
+
+
+	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
+	NSComp->SetupAttachment(RootComponent);
+
 
 }
 
@@ -44,7 +55,7 @@ void AProjectile_Turret::Tick(float DeltaTime)
 	if (AttackTarget) {
 
 		FVector Direction = (AttackTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		SetActorRotation(Direction.Rotation());
+		//SetActorRotation(Direction.Rotation());
 
 		FVector TargetLocation = GetActorLocation() + Direction * Speed * DeltaTime;
 		SetActorLocation(TargetLocation);
@@ -55,7 +66,7 @@ void AProjectile_Turret::Tick(float DeltaTime)
 
 
 
-		/* 임시
+		//임시
 		if (FVector::Dist(AttackTarget->GetActorLocation(), GetActorLocation()) <= 10.f) {
 			if (UStateComponentBase* TargetStateComponent = AttackTarget->GetComponentByClass<UStateComponentBase>())
 			{
@@ -65,7 +76,6 @@ void AProjectile_Turret::Tick(float DeltaTime)
 				Destroy();
 			}
 		}
-		*/
 
 	}
 	else {
@@ -78,6 +88,8 @@ void AProjectile_Turret::Tick(float DeltaTime)
 void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	
+	
+	/*
 	// 공격기능
 	// 충돌한 액터가 AttackTarget인 경우에만 함수를 호출 -  이외의 액터들은 무시할 수 있게 됨
 	if (OtherActor == AttackTarget) {
@@ -91,27 +103,14 @@ void AProjectile_Turret::NotifyActorBeginOverlap(AActor* OtherActor)
 			Destroy();
 		}
 
-		/*
-		// Test =================================================================
-		// 타겟이 미니언인 경우
-		if (OtherActor->IsA<AMinionBase>()) {
-			class AMinionBase* TargetMinion = Cast<AMinionBase>(OtherActor);
-			// 데미지를 주는 함수 호출
-			TargetMinion->TestDamageFunction();
-
-		}
-		// 현재 챔피언은 클래스가 없음
-		// 챔피언한테도 데미지 주도록 코드 추가 필요 ****************************
-		 
 		
-		// Test =================================================================
-		
-		Destroy();
 
 
 		//Attack_OverlapTarget();
-		*/
 	}
+	*/
+
+
 
 }
 

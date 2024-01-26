@@ -118,6 +118,20 @@ public: // AnimNotify - 애니메이션 특정 시점에서 Garen클래스의 �
 	UFUNCTION()
 	void AnimNotify_EndSkill_Q();
 
+
+
+
+
+
+
+
+	UFUNCTION()
+	void AnimNotify_Skill_E();
+	UFUNCTION()
+	void AnimNotify_EndSkill_E();
+
+
+
 	UFUNCTION()
 	void AnimNotify_Skill_R();
 	UFUNCTION()
