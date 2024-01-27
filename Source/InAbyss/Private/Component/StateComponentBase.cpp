@@ -26,6 +26,7 @@ void UStateComponentBase::BeginPlay()
 
 	if (GetOwner()->HasAuthority())
 	{
+		SetIsReplicated(true);
 		
 		SetHealth(MaxHealth);
 	}
@@ -45,6 +46,9 @@ void UStateComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(UStateComponentBase, Health);
 	DOREPLIFETIME(UStateComponentBase, Mana);
+	DOREPLIFETIME(UStateComponentBase, AttackDamage);
+	DOREPLIFETIME(UStateComponentBase, AbilityPower);
+	DOREPLIFETIME(UStateComponentBase, AttackRange);
 }
 
 EFactionType UStateComponentBase::GetFactionType() const
@@ -70,6 +74,11 @@ float UStateComponentBase::GetAbilityPower() const
 float UStateComponentBase::GetAttackDamage() const
 {
 	return AttackDamage;
+}
+
+float UStateComponentBase::GetAttackRange() const
+{
+	return AttackRange;
 }
 
 bool UStateComponentBase::IsDead() const
@@ -169,5 +178,9 @@ void UStateComponentBase::OnRep_AttackDamage()
 }
 
 void UStateComponentBase::OnRep_AbilityPower()
+{
+}
+
+void UStateComponentBase::OnRep_AttackRange()
 {
 }

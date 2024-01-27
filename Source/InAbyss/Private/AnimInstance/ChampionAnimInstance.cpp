@@ -5,6 +5,7 @@
 
 #include "Component/FSMComponent.h"
 #include "GameFramework/Character.h"
+#include "InAbyss/InAbyss.h"
 
 void UChampionAnimInstance::NativeBeginPlay()
 {
@@ -22,4 +23,25 @@ void UChampionAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		bIsMove = FSMComponent->IsMove();
 	}
+}
+
+void UChampionAnimInstance::PlayAttackMontage()
+{
+	if (AttackMontage)
+	{
+		Montage_Play(AttackMontage);
+	}
+}
+
+void UChampionAnimInstance::AnimNotify_ApplyDamage()
+{
+	if (Owner->IsLocallyControlled())
+	{
+		FSMComponent->ServerRPC_ApplyDamage();
+	}
+}
+
+void UChampionAnimInstance::AnimNotify_EndAttack()
+{
+	FSMComponent->EndAttack();
 }

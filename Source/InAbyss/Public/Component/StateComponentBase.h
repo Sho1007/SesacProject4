@@ -61,6 +61,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetAttackDamage() const;
 	UFUNCTION(BlueprintCallable)
+	float GetAttackRange() const;
+	UFUNCTION(BlueprintCallable)
 	bool IsDead() const;
 	
 	// Setter
@@ -98,6 +100,8 @@ public:
 	void OnRep_AttackDamage();
 	UFUNCTION()
 	void OnRep_AbilityPower();
+	UFUNCTION()
+	void OnRep_AttackRange();
 protected:
 	UPROPERTY(EditAnywhere)
 	float Exp;
@@ -121,8 +125,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, ReplicatedUsing = "OnRep_AttackDamage")
 	float AttackDamage;
-	UPROPERTY(EditAnywhere, ReplicatedUsing = "OnRep_AttackDamage")
+	UPROPERTY(EditAnywhere, ReplicatedUsing = "OnRep_AbilityPower")
 	float AbilityPower;
+
+	UPROPERTY(EditAnywhere, ReplicatedUsing = "OnRep_AttackRange")
+	float AttackRange = 150.f;
 
 public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FDELE_MULTI_ONE_FLOAT, float);
