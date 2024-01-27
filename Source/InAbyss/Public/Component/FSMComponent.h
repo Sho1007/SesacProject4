@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "FSMComponent.generated.h"
 
+class UChampionAnimInstance;
 class UNiagaraSystem;
 class UStateComponentBase;
 class UInputAction;
@@ -24,7 +25,7 @@ enum class EChampionState : uint8
 	MAX
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INABYSS_API UFSMComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -48,15 +49,31 @@ public:
 
 	// Rotate
 	bool Rotate(float DeltaTime);
-	
+	bool RotateToTarget(float DeltaTime);
 
 	// Input
 	UFUNCTION()
 	void RightClickStarted(const FInputActionValue& Value);
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_RightClickStarted(FVector NewWorldOrigin, FVector NewWorldDirection);
+	void ServerRPC_SetDestination(FVector NewDestination);
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SetTarget(AActor* NewTarget);
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_PlayAttackAnim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_PlayAttackAnim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_StopMontage();
 
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_ApplyDamage();
+
+	bool IsMove() const;
+	
+	// Attack
+
+	void EndAttack();
 	
 	// UFUNCTION(Server, Reliable)
 	// void ServerRPC_RightClickStarted(FVector NewWorldOrigin, FVector NewWorldDirection);
@@ -64,13 +81,23 @@ public:
 	// Setter
 	void SetShouldStop(bool bNewShouldStop);
 	// Getter
-	bool IsMove() const;
+	EChampionState GetChampionState() const;
 
 	// OnRep
 	UFUNCTION()
 	void OnRep_Destination();
+	UFUNCTION()
+	void OnRep_Target();
+	UFUNCTION()
+	void OnRep_IsAttacking();
 	
 private:
+	// AnimInstance
+	UPROPERTY()
+	UChampionAnimInstance* AnimInstance;
+
+	
+	// Cursor
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UNiagaraSystem* Cursor;
 	UPROPERTY(VisibleInstanceOnly, Meta = (AllowPrivateAccess))
@@ -83,7 +110,10 @@ private:
 	// State
 	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
 	EChampionState ChampionState = EChampionState::IDLE;
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_Target, Meta = (AllowPrivateAccess))
 	AActor* Target = nullptr;
+	UStateComponentBase* TargetStateComponent;
+	UPROPERTY(ReplicatedUsing = OnRep_IsAttacking, Meta = (AllowPrivateAccess))
 	bool bIsAttacking = false;
 	
 	// Component
@@ -98,7 +128,7 @@ private:
 	FRotator FromRotation;
 	FRotator ToRotation;
 	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
-	float RotationSpeed = 10.f;
+	float RotationSpeed = 20.f;
 	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
 	float RotationTime = 0.f;
 	float CurrentRotationTime = 0.f;
@@ -110,18 +140,10 @@ private:
 	float MoveSpeed = 300.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Move", Meta = (AllowPrivateAccess))
 	float ReachSuccessDistance = 10.f;
-	UPROPERTY(Replicated, Meta = (AllowPrivateAccess))
-	bool bIsMove = false;
-	bool bShouldStop = false;
 
 	// GetUnderCursor
 	UPROPERTY()
 	ACharacter* Owner;
 	UPROPERTY()
 	APlayerController* PlayerController;
-	UPROPERTY()
-	ULocalPlayer* LocalPlayer;
-	FVector2D MousePosition;
-	FVector WorldOrigin;
-	FVector WorldDirection;
 };

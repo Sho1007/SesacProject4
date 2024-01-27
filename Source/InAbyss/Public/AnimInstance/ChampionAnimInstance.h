@@ -19,12 +19,22 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	void PlayAttackMontage();
+
+	UFUNCTION()
+	void AnimNotify_ApplyDamage();
+	UFUNCTION()
+	void AnimNotify_EndAttack();
+
 private:
 	UPROPERTY(BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	bool bIsMove;
 	
 	UPROPERTY()
 	UFSMComponent* FSMComponent;
+
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UAnimMontage* AttackMontage;
 	
 	ACharacter* Owner;
 };

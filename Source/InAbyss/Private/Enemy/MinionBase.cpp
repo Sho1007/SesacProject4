@@ -446,7 +446,6 @@ void AMinionBase::Attack()
 	// 근거리
 	if (EnemyProjectileClass == nullptr)
 	{
-		UE_LOG(LogTemp,Warning, TEXT("AMinionBase::Attack) Has State Comp"));
 		TargetStateComponent->ApplyDamage(StateComponent->GetAttackDamage(), StateComponent->GetAbilityPower());
 	}
 	// 원거리

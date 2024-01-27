@@ -22,13 +22,10 @@ AEzreal::AEzreal()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
 	StateComponent = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComponent"));
-	StateComponent->SetIsReplicated(true);
 	
 	FSMComponent = CreateDefaultSubobject<UFSMComponent>(TEXT("FSMComponent"));
-	FSMComponent->SetIsReplicated(true);
 
 	SkillComponent = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComponent"));
-	SkillComponent->SetIsReplicated(true);
 }
 
 void AEzreal::BeginPlay()
