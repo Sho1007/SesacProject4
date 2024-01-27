@@ -37,21 +37,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USceneComponent* AttackStartPointComp;
 
-	
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UNiagaraComponent* NSComp;
 
 public: // 감지기능
-
-	// 감지된 대상들을 저장할 배열
-	// 임시---------------
-	//TArray <AActor*> DetectTargets_Test; // 나중에 필요없음
-
-	//TArray <AActor*> DetectTargets_Chracter_Test; // 적 챔피언 저장할 배열
-	//TArray <AActor*> DetectTargets_MinionBase_Test; // 적 챔피언 저장할 배열
-	// 임시---------------
-
 
 	UPROPERTY(VisibleAnywhere)
 	TArray <AActor*> DetectTargets_EnemyChampion; // 적 챔피언 저장할 배열
@@ -89,7 +78,6 @@ public: // 인터페이스 함수
 
 	// 피격시 체력이 0 이하일 때 호출
 	void Die() override;
-
 
 };
 
