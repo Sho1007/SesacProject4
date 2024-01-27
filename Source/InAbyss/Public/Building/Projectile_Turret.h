@@ -28,14 +28,6 @@ public:
 	class USphereComponent* CollisionComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UStaticMeshComponent* MeshComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UParticleSystemComponent* ParticleComp;
-
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UNiagaraComponent* NSComp;
 
 
