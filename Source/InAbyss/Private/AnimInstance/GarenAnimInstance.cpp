@@ -51,6 +51,7 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 	{
 		bIsAttack_Garen = false;
 	}
+	*/
 
 	// 죽음
 	if (Owner && Owner->GarenState == EGarenState::DEAD) {
@@ -62,7 +63,6 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 		bIsDead_Garen = false;
 	}
 
-	*/
 
 	//UE_LOG(LogTemp, Warning, TEXT("bIsSkilling_Q is: %d"), bIsSkilling_Q);
 	//UE_LOG(LogTemp, Warning, TEXT("bIsSkill_Q is: %d"), bIsSkill_Q );

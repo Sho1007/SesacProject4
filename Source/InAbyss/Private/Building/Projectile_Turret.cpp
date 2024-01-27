@@ -19,20 +19,6 @@ AProjectile_Turret::AProjectile_Turret()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
 	SetRootComponent(CollisionComp);
 
-
-
-	/*
-	// 나중에는 Mesh는 빼고 이펙트만 남겨도 될 듯
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetupAttachment(RootComponent);
-
-	// 블루프린트에서 이펙트 설정 필요
-	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
-	ParticleComp->SetupAttachment(RootComponent);
-	*/
-
-
-
 	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
 	NSComp->SetupAttachment(RootComponent);
 

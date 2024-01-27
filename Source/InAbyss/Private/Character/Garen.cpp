@@ -180,7 +180,7 @@ void AGaren::Tick(float DeltaTime)
 
 	}
 
-	Turn_Garen();
+	//Turn_Garen();
 
 }
 
@@ -404,13 +404,14 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 
 	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
 
-
-
 }
 
 void AGaren::KeyBoard_W(const FInputActionValue& value)
 {
 	//NSComp->SetVisibility(true);
+
+	// 사용할 이펙트 선택
+	NSComp->SetAsset(SkillEffect[0]);
 
 	// W 스킬 이펙트 스폰
 	if (NSComp) {
@@ -462,6 +463,8 @@ void AGaren::Move_Garen() // 가렌의 이동
 
 	// 캐릭터의 위치를 이동
 	AddActorWorldOffset(Direction * Speed * GetWorld()->GetDeltaSeconds());
+
+	Turn_Garen();
 
 	// 지정한 위치 도착시, 오차범위 10 이내이면 상태를 IDLE로 전환
 	if (FVector::Dist(ActorLocatoin, CursorPlace) <= 10) {
@@ -647,7 +650,7 @@ void AGaren::Damaged()
 void AGaren::Die()
 {
 	// 피격시 가렌의 체력이 0이하 일 때
-	GarenAnim->PlayANM_Dead();
+	//GarenAnim->PlayANM_Dead();
 	GarenState = EGarenState::DEAD;
 
 	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
