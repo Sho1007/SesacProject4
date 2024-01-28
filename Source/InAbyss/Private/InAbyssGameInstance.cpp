@@ -70,7 +70,7 @@ void UInAbyssGameInstance::CreateGameSession(const FString roomName, const int32
 
 void UInAbyssGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
-	// 생성한 세션에 입장 - 입장 경로 잘 적어야 함(레벨 경로 || "/Game/Net/Maps/BattleMap?listen") 
+	// 생성한 세션에 입장 - 입장 경로 잘 적어야 함(레벨 경로 || "/Game/KHS/KHSMap.KHSMap'") 
 	if (bWasSuccessful) {
 		GetWorld()->ServerTravel(TEXT("/Game/KHS/Map/ChampionSelectionMap?listen")); // => 챔피언 선택 맵으로 이동 //
 	}//"Game/OSH/Level/L_Laboratory?listen'"
@@ -200,5 +200,4 @@ void UInAbyssGameInstance::OnJoinSessionCompleted(FName sessionName, EOnJoinSess
 
 
 }
-
 

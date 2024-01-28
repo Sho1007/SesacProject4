@@ -101,11 +101,14 @@ public: // °ø¿ë
 	class UWidgetSwitcher* WidgetSwitcher;
 
 
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
+	class UButton* btn_BackMain;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
+	class UButton* btn_BackMain_1;
 
 	UFUNCTION()
 	void BackToMain();
-
 
 
 };

@@ -86,5 +86,4 @@ public:	// 세션 입장 기능
 	// 세션 입장시 콜백
 	void OnJoinSessionCompleted(FName sessionName, EOnJoinSessionCompleteResult::Type result);
 
-
 };
