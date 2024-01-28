@@ -44,6 +44,12 @@ void ULoginWidget::NativeConstruct()
 
 
 
+
+
+	// 뒤로 가기
+	btn_BackMain->OnClicked.AddDynamic(this, &ULoginWidget::BackToMain);
+	btn_BackMain_1->OnClicked.AddDynamic(this, &ULoginWidget::BackToMain);
+
 }
 
 // ========================================================================
@@ -91,6 +97,7 @@ void ULoginWidget::CreateGameRoom()
 		// 비밀번호
 		//FString roomName = edit_Password->GetText().ToString();
 
+		// 세션 생성
 		GI->CreateGameSession(roomName, playerCount);
 	}
 
