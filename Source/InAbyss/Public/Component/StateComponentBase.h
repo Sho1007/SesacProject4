@@ -84,6 +84,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddHealth(float AddAmount);
 
+	// LuxBarrier
+	UFUNCTION(BlueprintCallable)
+	void SetLuxBarrier(bool bNewLuxBarrier);
+
+	void SetSilence(bool bNewSilence);
+	UFUNCTION(BlueprintCallable)
+	bool GetSilence() const;
+	void TurnOffSilence();
+	
 	// Exp
 	void AddExp(const float NewExp);
 
@@ -113,6 +122,14 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere)
 	EObjectType ObjectType;
 
+	// 
+	UPROPERTY(Replicated, EditAnywhere)
+	bool bLuxBarrier = false;
+	UPROPERTY(Replicated, EditAnywhere)
+	bool bSilence = false;
+
+	FTimerHandle SilenceTimerHandle;
+
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth = 100.f;
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_Health")
@@ -136,3 +153,8 @@ public:
 	FDELE_MULTI_ONE_FLOAT OnHPChanged;
 	FDELE_MULTI_ONE_FLOAT OnMPChanged;
 };
+
+inline bool UStateComponentBase::GetSilence() const
+{
+	return bSilence;
+}

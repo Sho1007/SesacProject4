@@ -42,6 +42,10 @@ void ACharacterBase::Die()
 	Die_Blueprint();
 }
 
+void ACharacterBase::RemoveLuxBarrier_Implementation()
+{
+}
+
 void ACharacterBase::Damaged_Blueprint_Implementation()
 {
 }
