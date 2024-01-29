@@ -8,7 +8,7 @@
 
 AInhibitor::AInhibitor()
 {
-	// ¾ïÁ¦±âÀÇ Collision¼¼ÆÃ
+	// ì–µì œê¸°ì˜ Collisionì„¸íŒ…
 	CollisionComp->SetCapsuleRadius(210);
 
 }
@@ -19,8 +19,8 @@ void AInhibitor::BeginPlay()
 
 	BuildingState = EBuildingState::IDLE;
 
-	InhibitorAnimInstance = Cast<UInhibitorAnimInstance>(MeshComp->GetAnimInstance());
-	check(InhibitorAnimInstance);
+	// InhibitorAnimInstance = Cast<UInhibitorAnimInstance>(MeshComp->GetAnimInstance());
+	// check(InhibitorAnimInstance);
 
 }
 
@@ -48,10 +48,10 @@ void AInhibitor::Tick(float DeltaTime)
 
 void AInhibitor::ReBuildTimer()
 {
-	// ¾ïÁ¦±âÀÇ Ã¼·ÂÀÌ 0ÀÌ µÇ¾úÀ» ¶§ È£ÃâµÉ ÇÔ¼ö
+	// ì–µì œê¸°ì˜ ì²´ë ¥ì´ 0ì´ ë˜ì—ˆì„ ë•Œ í˜¸ì¶œë  í•¨ìˆ˜
 	FTimerHandle RebuildTimerhandle;
 
-	// 5ºÐÀÇ Å¸ÀÌ¸Ó¸¦ ÁøÇàÇÏ°í, Å¸ÀÌ¸Ó°¡ Á¾·áµÇ¸é ¾ïÁ¦±âÀÇ Ã¼·ÂÀ» ´Ù½Ã ÃÖ´ë·Î ¸¸µç´Ù. 
+	// 5ë¶„ì˜ íƒ€ì´ë¨¸ë¥¼ ì§„í–‰í•˜ê³ , íƒ€ì´ë¨¸ê°€ ì¢…ë£Œë˜ë©´ ì–µì œê¸°ì˜ ì²´ë ¥ì„ ë‹¤ì‹œ ìµœëŒ€ë¡œ ë§Œë“ ë‹¤. 
 	GetWorldTimerManager().SetTimer(RebuildTimerhandle, this, &AInhibitor::ReBuild, 300, false); 
 
 }
@@ -60,11 +60,11 @@ void AInhibitor::ReBuild()
 {
 	BuildingState = EBuildingState::IDLE;
 
-	// ¾ïÁ¦±â ºÎÈ° ¾Ö´Ï¸ÞÀÌ¼Ç
-	// ¾Ö´Ï¸ÞÀÌ¼Ç ¿¬ÃâÀ» À§ÇÑ º¯¼ö
-	InhibitorAnimInstance->bIsDeath = false;
+	// ì–µì œê¸° ë¶€í™œ ì• ë‹ˆë©”ì´ì…˜
+	// ì• ë‹ˆë©”ì´ì…˜ ì—°ì¶œì„ ìœ„í•œ ë³€ìˆ˜
+	// InhibitorAnimInstance->bIsDeath = false;
 
-	// ¾ïÁ¦±â Ã¼·ÂÀ» Ç®·Î Ã¤¿öÁÜ
+	// ì–µì œê¸° ì²´ë ¥ì„ í’€ë¡œ ì±„ì›Œì¤Œ
 	StateComponent_Building->SetHealthToMax();
 	
 
@@ -72,41 +72,41 @@ void AInhibitor::ReBuild()
 
 void AInhibitor::Damaged()
 {
-	// ¾ïÁ¦±âÀÇ Ã¼·ÂÀÌ 0º¸´Ù Å©¸é - È£ÃâÇÒ °Å ¾øÀ» µí?
+	// ì–µì œê¸°ì˜ ì²´ë ¥ì´ 0ë³´ë‹¤ í¬ë©´ - í˜¸ì¶œí•  ê±° ì—†ì„ ë“¯?
 
 }
 
 void AInhibitor::Die()
 {
-	// ¾ïÁ¦±âÀÇ Ã¼·ÂÀÌ 0 ÀÌÇÏÀÌ¸é
+	// ì–µì œê¸°ì˜ ì²´ë ¥ì´ 0 ì´í•˜ì´ë©´
 
-	// ¸ðµç ÄÝ¸®Àü NoCollision - ¾ïÁ¦±â´Â ÄÝ¸®Àü ²ø ÇÊ¿ä ¾øÀ»µí?
+	// ëª¨ë“  ì½œë¦¬ì „ NoCollision - ì–µì œê¸°ëŠ” ì½œë¦¬ì „ ëŒ í•„ìš” ì—†ì„ë“¯?
 	
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// ¾ïÁ¦±â°¡ ÆÄ±«µÇ¾úÀ» ¶§ÀÇ ¿¬Ãâ ÇÊ¿ä - ¾Ö´Ï¸ÞÀÌ¼Ç
+	// ì–µì œê¸°ê°€ íŒŒê´´ë˜ì—ˆì„ ë•Œì˜ ì—°ì¶œ í•„ìš” - ì• ë‹ˆë©”ì´ì…˜
 
 
-	InhibitorAnimInstance->bIsDeath = true;
+	// InhibitorAnimInstance->bIsDeath = true;
 
 
-	// ¾ïÁ¦±â »óÅÂ¸¦ Destroy·Î º¯°æ
+	// ì–µì œê¸° ìƒíƒœë¥¼ Destroyë¡œ ë³€ê²½
 	BuildingState = EBuildingState::Destroy;
 
 
 
-	// ¾ïÁ¦±â Àç»ý Å¸ÀÌ¸Ó ÇÔ¼ö È£Ãâ
+	// ì–µì œê¸° ìž¬ìƒ íƒ€ì´ë¨¸ í•¨ìˆ˜ í˜¸ì¶œ
 	ReBuildTimer();
 
 }
 
 /*
-¾ïÁ¦±â´Â ÆÄ±«µÈ ÈÄ 5ºÐ ÈÄ¿¡ Àç»ý¼ºµÈ´Ù.
-	-> ¾ïÁ¦±â´Â Ã¼·ÂÀÌ 0ÀÌ µÇ¸é Å¸ÀÌ¸Ó¸¦ ½ÃÀÛÇÑ´Ù.
-	-> Å¸ÀÌ¸Ó°¡ ³¡³ª¸é ¾ïÁ¦±âÀÇ Ã¼·ÂÀ» È¸º¹ÇÑ´Ù.
+ì–µì œê¸°ëŠ” íŒŒê´´ëœ í›„ 5ë¶„ í›„ì— ìž¬ìƒì„±ëœë‹¤.
+	-> ì–µì œê¸°ëŠ” ì²´ë ¥ì´ 0ì´ ë˜ë©´ íƒ€ì´ë¨¸ë¥¼ ì‹œìž‘í•œë‹¤.
+	-> íƒ€ì´ë¨¸ê°€ ëë‚˜ë©´ ì–µì œê¸°ì˜ ì²´ë ¥ì„ íšŒë³µí•œë‹¤.
 
-³Ø¼­½º¿Í ¾ïÁ¦±â Æ÷Å¾ÀÇ Ã¼·Â ±¸°£ÀÌ 3µîºÐµÇ¾ú´Âµ¥, Æ÷Å¾ÀÇ Ã¼·ÂÀº ÇöÀç Ã¼·ÂÀÌ ¼ÓÇÑ 3µîºÐ ±¸°£ÀÇ ÃÖ´ëÄ¡(100%, 66%, 33%)±îÁö¸¸ Àç»ýµÈ´Ù. ¿¹¸¦ µé¾î 70%·Î ±ðÀÌ¸é 100%±îÁö, 50%·Î ±ðÀÌ¸é 66%±îÁö, 25%·Î ±ðÀÌ¸é 33%±îÁö¸¸ È¸º¹µÈ´Ù.
+ë„¥ì„œìŠ¤ì™€ ì–µì œê¸° í¬íƒ‘ì˜ ì²´ë ¥ êµ¬ê°„ì´ 3ë“±ë¶„ë˜ì—ˆëŠ”ë°, í¬íƒ‘ì˜ ì²´ë ¥ì€ í˜„ìž¬ ì²´ë ¥ì´ ì†í•œ 3ë“±ë¶„ êµ¬ê°„ì˜ ìµœëŒ€ì¹˜(100%, 66%, 33%)ê¹Œì§€ë§Œ ìž¬ìƒëœë‹¤. ì˜ˆë¥¼ ë“¤ì–´ 70%ë¡œ ê¹Žì´ë©´ 100%ê¹Œì§€, 50%ë¡œ ê¹Žì´ë©´ 66%ê¹Œì§€, 25%ë¡œ ê¹Žì´ë©´ 33%ê¹Œì§€ë§Œ íšŒë³µëœë‹¤.
 
-Ã¼·Â Àç»ý 5ÃÊ´ç 15
+ì²´ë ¥ ìž¬ìƒ 5ì´ˆë‹¹ 15
 
 */

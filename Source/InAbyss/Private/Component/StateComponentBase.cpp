@@ -37,6 +37,12 @@ void UStateComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	
+	FString DebugString = UEnum::GetValueAsString(FactionType);
+	
+	DrawDebugString(GetWorld(), FVector::ZeroVector, DebugString, GetOwner(),
+		FColor::Cyan, 0.01f);
+
 	// ...
 }
 
@@ -49,6 +55,8 @@ void UStateComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(UStateComponentBase, AttackDamage);
 	DOREPLIFETIME(UStateComponentBase, AbilityPower);
 	DOREPLIFETIME(UStateComponentBase, AttackRange);
+	DOREPLIFETIME(UStateComponentBase, FactionType);
+	DOREPLIFETIME(UStateComponentBase, ObjectType);
 }
 
 EFactionType UStateComponentBase::GetFactionType() const
