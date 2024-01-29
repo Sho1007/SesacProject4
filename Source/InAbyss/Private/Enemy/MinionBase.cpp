@@ -60,8 +60,6 @@ void AMinionBase::BeginPlay()
 		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AMinionBase::OnSphereComponentBeginOverlap);
 		SphereComponent->OnComponentEndOverlap.AddDynamic(this, &AMinionBase::OnSphereComponentEndOverlap);
 		SetActorTickEnabled(true);
-		SetReplicates(true);
-		SetReplicateMovement(true);
 
 		FindTarget();
 	}
@@ -294,16 +292,17 @@ void AMinionBase::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		if (OverlapStateComponent->GetFactionType() == EFactionType::NEUTRAL) return;
 		if (OverlapStateComponent->GetFactionType() == StateComponent->GetFactionType())
 		{
-			if (OverlapStateComponent->GetObjectType() == EObjectType::BUILDING) return;
+			// if (OverlapStateComponent->GetObjectType() == EObjectType::BUILDING) return;
 			NeighborActorArray.Add(OtherActor);
 		}
 		else
 		{
 			TargetActorArray.Add(OtherActor);
-			if (Target == nullptr)
-			{
-				SetTarget(OtherActor);
-			}
+			SetTarget(OtherActor);
+			// if (Target == nullptr)
+			// {
+			// 	SetTarget(OtherActor);
+			// }
 		}
 	}
 }
@@ -338,23 +337,23 @@ FVector AMinionBase::Separation()
 		SeparationVector += Direction;
 	}
 
-	for (auto Iter : TargetActorArray)
-	{
-		if (Iter == Target || Iter->GetComponentByClass<UStateComponentBase>()->IsDead()) continue;
-		FVector Direction = GetActorLocation() - Iter->GetActorLocation();
-		Direction.Z = 0.f;
-		float Distance = Direction.Length();
-		
-		if (Distance > SeparationDistance) continue;
-		Count++;
-		Direction /= Distance;
-		SeparationVector += Direction;
-	}
+	// for (auto Iter : TargetActorArray)
+	// {
+	// 	if (Iter == Target || Iter->GetComponentByClass<UStateComponentBase>()->IsDead()) continue;
+	// 	FVector Direction = GetActorLocation() - Iter->GetActorLocation();
+	// 	Direction.Z = 0.f;
+	// 	float Distance = Direction.Length();
+	// 	
+	// 	if (Distance > SeparationDistance) continue;
+	// 	Count++;
+	// 	Direction /= Distance;
+	// 	SeparationVector += Direction;
+	// }
 
 	if (Count > 0)
 	{
 		SeparationVector /= Count;
-		// DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + (SeparationVector * 500.f), FColor::Cyan, false, -1, 0, 3.f);
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + (SeparationVector * 500.f), FColor::Cyan, false, -1, 0, 3.f);
 	}
 
 	return SeparationVector;
@@ -404,7 +403,6 @@ void AMinionBase::TestDamageFunction()
 
 void AMinionBase::Damaged()
 {
-	
 }
 
 void AMinionBase::Die()
@@ -527,7 +525,7 @@ void AMinionBase::SetTarget(AActor* NewTarget, int32 NewPriority)
 		if (IterPriority > TargetPriority) return;
 
 		float IterDistance = FVector::DistXY(GetActorLocation(), NewTarget->GetActorLocation());
-		if (IterDistance < TargetDistance)
+		if (IterDistance <= TargetDistance)
 		{
 			Target = NewTarget;
 			TargetStateComponent = IterStateComponent;
@@ -560,10 +558,11 @@ void AMinionBase::MultiRPC_Activate_Implementation()
 
 void AMinionBase::MultiRPC_Deactivate_Implementation()
 {
-	HealthBarWidgetComponent->SetVisibility(false);
-	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SkeletalMeshComponent->SetVisibility(false);
+	Destroy();
+	// HealthBarWidgetComponent->SetVisibility(false);
+	// CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// SkeletalMeshComponent->SetVisibility(false);
 }
 
 void AMinionBase::FindTarget()

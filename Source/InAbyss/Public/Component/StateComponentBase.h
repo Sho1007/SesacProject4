@@ -29,7 +29,7 @@ enum class EObjectType : uint8
 	SIZE,
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INABYSS_API UStateComponentBase : public UActorComponent
 {
 	GENERATED_BODY()
@@ -108,9 +108,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	int32 Money;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	EFactionType FactionType;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	EObjectType ObjectType;
 
 	UPROPERTY(EditDefaultsOnly)

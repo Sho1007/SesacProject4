@@ -32,7 +32,7 @@ void UMinionSpawnComponent::BeginPlay()
 			FactionType = NexusStateComponent->GetFactionType();
 		}
 
-		PrepareMinion();
+		// PrepareMinion();
 	}
 	else
 	{
@@ -76,10 +76,10 @@ void UMinionSpawnComponent::PrepareMinion()
 			Params);
 			Minion->SetWayPointArray(WayPointArray);
 			Minion->Deactivate();
-			if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
-			{
-				MinionStateComponent->SetFactionType(FactionType);
-			}
+			// if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
+			// {
+			// 	MinionStateComponent->SetFactionType(FactionType);
+			// }
 
 			MeleeMinionObjectPool.Add(Minion);
 		}
@@ -141,16 +141,20 @@ void UMinionSpawnComponent::SpawnMinionTimerFuntion()
 		}
 		else
 		{
-			// Spawn Caster Minion
-			for (auto Iter : MeleeMinionObjectPool)
-			{
-				if (Iter->IsActivated() == false)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("UMinionSpawnComponent::SpawnMinionTimerFuntion) Activated Object : %s"), *Iter->GetActorNameOrLabel());
-					Iter->Activate();
-					break;
-				}
-			}
+			// Spawn Melee Minion
+			// for (auto Iter : MeleeMinionObjectPool)
+			// {
+			// 	if (Iter->IsActivated() == false)
+			// 	{
+			// 		UE_LOG(LogTemp, Warning, TEXT("UMinionSpawnComponent::SpawnMinionTimerFuntion) Activated Object : %s"), *Iter->GetActorNameOrLabel());
+			// 		Iter->Activate();
+			// 		break;
+			// 	}
+			// }
+
+			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(MeleeMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation());
+			Minion->SetWayPointArray(WayPointArray);
+			Minion->Activate();
 
 			SpawnIndex++;
 		}
