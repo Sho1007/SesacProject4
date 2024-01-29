@@ -5,6 +5,7 @@
 
 #include <Net/UnrealNetwork.h>
 
+#include "Character/CharacterBase.h"
 #include "Interface/StateInterface.h"
 #include "Widget/InGame/HealthBarWidgetBase.h"
 
@@ -57,6 +58,8 @@ void UStateComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(UStateComponentBase, AttackRange);
 	DOREPLIFETIME(UStateComponentBase, FactionType);
 	DOREPLIFETIME(UStateComponentBase, ObjectType);
+	DOREPLIFETIME(UStateComponentBase, bLuxBarrier);
+	DOREPLIFETIME(UStateComponentBase, bSilence);
 }
 
 EFactionType UStateComponentBase::GetFactionType() const
@@ -136,8 +139,18 @@ void UStateComponentBase::ApplyDamage(float ADDamage, float APDamage)
 	if (GetOwner()->HasAuthority() == false) return;
 
 	if (IsDead()) return;
-	
+
 	float TotalDamage = ADDamage + APDamage;
+	
+	if (bLuxBarrier)
+	{
+		TotalDamage *= 0.5f;
+		bLuxBarrier = false;
+		if (ACharacterBase* Character = GetOwner<ACharacterBase>())
+		{
+			Character->RemoveLuxBarrier();
+		}
+	}
 
 	SetHealth(Health - TotalDamage);
 
@@ -161,6 +174,30 @@ void UStateComponentBase::AddHealth(float AddAmount)
 	float OverHealthAmount = (AddAmount + Health) > MaxHealth ? (AddAmount + Health) - MaxHealth : 0.f;
 	
 	SetHealth(AddAmount + Health);
+}
+
+void UStateComponentBase::SetLuxBarrier(bool bNewLuxBarrier)
+{
+	if (GetOwner()->HasAuthority() == false) return;
+
+	bLuxBarrier = bNewLuxBarrier;
+}
+
+void UStateComponentBase::SetSilence(bool bNewSilence)
+{
+	if (GetOwner()->HasAuthority() == false) return;
+	bSilence = bNewSilence;
+
+	if (SilenceTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SilenceTimerHandle);
+	}
+	GetWorld()->GetTimerManager().SetTimer(SilenceTimerHandle, this, &UStateComponentBase::TurnOffSilence, 0.f, false, 3.f);
+}
+
+void UStateComponentBase::TurnOffSilence()
+{
+	bSilence = false;
 }
 
 void UStateComponentBase::AddExp(const float NewExp)

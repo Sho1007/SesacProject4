@@ -35,4 +35,7 @@ public:
 	void Damaged_Blueprint();
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Die_Blueprint();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void RemoveLuxBarrier();
 };
