@@ -75,7 +75,6 @@ void UMinionSpawnComponent::PrepareMinion()
 			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(MeleeMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation(),
 			Params);
 			Minion->SetWayPointArray(WayPointArray);
-			Minion->Deactivate();
 			// if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
 			// {
 			// 	MinionStateComponent->SetFactionType(FactionType);
@@ -92,7 +91,6 @@ void UMinionSpawnComponent::PrepareMinion()
 			AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(CasterMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation(),
 			Params);
 			Minion->SetWayPointArray(WayPointArray);
-			Minion->Deactivate();
 			if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
 			{
 				MinionStateComponent->SetFactionType(FactionType);
@@ -109,7 +107,6 @@ void UMinionSpawnComponent::PrepareMinion()
         	AMinionBase* Minion = GetWorld()->SpawnActor<AMinionBase>(SiegeMinionClass, SpawnPoint->GetActorLocation(), SpawnPoint->GetActorRotation(),
         	Params);
 			Minion->SetWayPointArray(WayPointArray);
-        	Minion->Deactivate();
         	if (UStateComponentBase* MinionStateComponent = Minion->GetComponentByClass<UStateComponentBase>())
         	{
         		MinionStateComponent->SetFactionType(FactionType);

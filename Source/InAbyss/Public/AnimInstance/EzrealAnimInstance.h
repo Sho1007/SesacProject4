@@ -15,4 +15,7 @@ UCLASS()
 class INABYSS_API UEzrealAnimInstance : public UChampionAnimInstance
 {
 	GENERATED_BODY()
+
+public:
+	virtual void AnimNotify_Q() override;
 };

@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "ChampionAnimInstance.generated.h"
 
+class USkillComponent;
 class UFSMComponent;
 /**
  * 
@@ -21,20 +22,42 @@ public:
 
 	void PlayAttackMontage();
 
+	void PlayQMontage();
+	void PlayWMontage();
+	void PlayEMontage();
+	void PlayRMontage();
+	
+
 	UFUNCTION()
 	void AnimNotify_ApplyDamage();
 	UFUNCTION()
+	virtual void AnimNotify_Q();
+	UFUNCTION()
 	void AnimNotify_EndAttack();
+	UFUNCTION()
+	void AnimNotify_EndSkill();
 
-private:
+protected:
 	UPROPERTY(BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	bool bIsMove;
 	
 	UPROPERTY()
 	UFSMComponent* FSMComponent;
+	UPROPERTY()
+	USkillComponent* SkillComponent;
+	
 
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UAnimMontage* AttackMontage;
-	
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UAnimMontage* QMontage;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UAnimMontage* WMontage;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UAnimMontage* EMontage;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	UAnimMontage* RMontage;
+
+protected:
 	ACharacter* Owner;
 };

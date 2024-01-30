@@ -4,6 +4,7 @@
 #include "AnimInstance/ChampionAnimInstance.h"
 
 #include "Component/FSMComponent.h"
+#include "Component/SkillComponent.h"
 #include "GameFramework/Character.h"
 #include "InAbyss/InAbyss.h"
 
@@ -13,6 +14,7 @@ void UChampionAnimInstance::NativeBeginPlay()
 
 	Owner = Cast<ACharacter>(GetOwningActor());
 	FSMComponent = Owner->GetComponentByClass<UFSMComponent>();
+	SkillComponent = Owner->GetComponentByClass<USkillComponent>();
 }
 
 void UChampionAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -33,6 +35,38 @@ void UChampionAnimInstance::PlayAttackMontage()
 	}
 }
 
+void UChampionAnimInstance::PlayQMontage()
+{
+	if (QMontage)
+	{
+		Montage_Play(QMontage);
+	}
+}
+
+void UChampionAnimInstance::PlayWMontage()
+{
+	if (WMontage)
+	{
+		Montage_Play(WMontage);
+	}
+}
+
+void UChampionAnimInstance::PlayEMontage()
+{
+	if (EMontage)
+	{
+		Montage_Play(EMontage);
+	}
+}
+
+void UChampionAnimInstance::PlayRMontage()
+{
+	if (RMontage)
+	{
+		Montage_Play(RMontage);
+	}
+}
+
 void UChampionAnimInstance::AnimNotify_ApplyDamage()
 {
 	if (Owner->IsLocallyControlled())
@@ -41,7 +75,19 @@ void UChampionAnimInstance::AnimNotify_ApplyDamage()
 	}
 }
 
+void UChampionAnimInstance::AnimNotify_Q()
+{
+}
+
 void UChampionAnimInstance::AnimNotify_EndAttack()
 {
 	FSMComponent->EndAttack();
+}
+
+void UChampionAnimInstance::AnimNotify_EndSkill()
+{
+	if (Owner->IsLocallyControlled())
+	{
+		SkillComponent->ServerRPC_EndSkill();
+	}
 }
