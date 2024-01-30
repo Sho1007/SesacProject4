@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include <../../../../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputActionValue.h>
 #include "Interface/StateInterface.h"
+#include "CharacterBase.h"
 #include "Garen.generated.h"
 
 UENUM()
@@ -20,7 +21,7 @@ enum class EGarenState: uint8
 };
 
 UCLASS()
-class INABYSS_API AGaren : public ACharacter, public IStateInterface
+class INABYSS_API AGaren : public ACharacterBase
 {
 	GENERATED_BODY()
 
@@ -47,9 +48,18 @@ public:	// Mapping
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* IMC;
 
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	class UGarenFSMComponent* FSMComponent;
+
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	class UGarenSkillComponent* SkillComponent;
 	
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	class UStateComponentBase* StateComponentBase;
+
+
+
+
 
 public: // InputAction
 	// 마우스 우클릭
@@ -210,10 +220,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"))
 	TArray<class USoundBase*> GR_SkillVoice;
+//
+//public: // 인터페이스 가상함수 상속 부분
+//		virtual void Damaged() override;
+//
+//		virtual void Die() override;
 
-public: // 인터페이스 가상함수 상속 부분
-		virtual void Damaged() override;
-
-		virtual void Die() override;
-
+	virtual void Damaged() override;
+	virtual void Die() override;
 };

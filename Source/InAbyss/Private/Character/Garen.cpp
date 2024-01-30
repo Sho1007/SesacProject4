@@ -14,6 +14,10 @@
 #include "AnimInstance/GarenAnimInstance.h"
 #include "NiagaraComponent.h"
 #include <Components/AudioComponent.h>
+#include "Component/FSMComponent.h"
+#include "Component/SkillComponent.h"
+#include "Component/GarenFSMComponent.h"
+#include "Component/GarenSkillComponent.h"
 
 
 // Sets default values
@@ -24,10 +28,6 @@ AGaren::AGaren()
 
 
 	
-
-	// 상태 컴포넌트
-	StateComp_Garen = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComp_Garen"));
-	StateComp_Garen->SetObjectType(EObjectType::CHAMPION);
 
 	// 스프링 암 컴포넌트
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
@@ -45,6 +45,11 @@ AGaren::AGaren()
 	AttackRange->SetupAttachment(RootComponent);
 	AttackRange->SetSphereRadius(230);
 
+
+
+
+
+
 	// 이펙트 컴포넌트
 	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
 	NSComp->SetupAttachment(RootComponent);
@@ -53,6 +58,21 @@ AGaren::AGaren()
 	// 오디오 컴포넌트
 	ADComp = CreateDefaultSubobject<UAudioComponent>(TEXT("ADComp"));
 	ADComp->SetupAttachment(RootComponent);
+
+
+
+
+
+
+
+	FSMComponent = CreateDefaultSubobject<UGarenFSMComponent>(TEXT("FSMComponent"));
+
+	SkillComponent = CreateDefaultSubobject<UGarenSkillComponent>(TEXT("SkillComponent "));
+
+	// 상태 컴포넌트
+	StateComp_Garen = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComp_Garen"));
+	StateComp_Garen->SetObjectType(EObjectType::CHAMPION);
+
 
 
 }
@@ -70,15 +90,17 @@ void AGaren::BeginPlay()
 			Subsystem->AddMappingContext(IMC, 0);
 		}
 	}
+
+
+	// =====================================================
+	
 	// -----------------------
 
 	GarenState = EGarenState::IDLE;
 
-	// -----------------------
 
-	CursorPlace = GetActorLocation();
+	//CursorPlace = GetActorLocation();
 
-	// -----------------------
 
 	GarenAnim = Cast<UGarenAnimInstance>(this->GetMesh()->GetAnimInstance());
 	check(GarenAnim);
@@ -90,7 +112,7 @@ void AGaren::BeginPlay()
 	}
 	*/
 
-	
+
 }
 
 // Called every frame
@@ -111,7 +133,7 @@ void AGaren::Tick(float DeltaTime)
 	case EGarenState::MOVE:
 
 		//GarenAnim->PlayANM_Move();
-		Move_Garen();
+		//Move_Garen();
 
 		if (GarenAnim->bIsSkilling_E == true) {
 			break;
@@ -144,13 +166,12 @@ void AGaren::Tick(float DeltaTime)
 		break;
 	}
 
-	
+
 
 
 	if (bIs_R_Move) {
 
 		// 이동 기능
-		//Move_Garen();
 		GarenState = EGarenState::MOVE;
 
 		if (FVector::Dist(GetActorLocation(), Target_Champion->GetActorLocation()) <= 500) { // 대상이 거리 안에 있다면
@@ -183,8 +204,11 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (EnhancedInputComponent) {
 		// 마우스 우클릭 입력 - 이동 및 공격 타겟 설정
-		EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Started, this, &AGaren::MouseRightClick);
-		EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Triggered, this, &AGaren::MouseRightClick);
+		//EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Started, this, &AGaren::MouseRightClick);
+		//EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Triggered, this, &AGaren::MouseRightClick);
+
+		FSMComponent->SetupPlayerInputComponent(EnhancedInputComponent); // 우클릭 
+
 
 		// 마우스 좌클릭 입력
 		EnhancedInputComponent->BindAction(Mouse_Left_Action, ETriggerEvent::Started, this, &AGaren::MouseLeftClick);
@@ -213,18 +237,10 @@ void AGaren::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (OtherActor->GetComponentByClass<UStateComponentBase>()) {
 
-
 		// 공격 범위에 들어온 액터를 배열에 저장
 		Targets_Attack.Add(OtherActor);
 
-		
-		// 해당 OtherActor를 공격하도록 함
 
-		/*
-		for (AActor* Target : Targets_Attack) {
-			UE_LOG(LogTemp, Warning, TEXT("Begin : Target Actor: %s"), *Target->GetName());
-		}
-		*/
 	}
 
 }
@@ -237,15 +253,10 @@ void AGaren::NotifyActorEndOverlap(AActor* OtherActor)
 		// 배열에서 삭제
 		Targets_Attack.Remove(OtherActor);
 
-		/*
-		for (AActor* Target : Targets_Attack) {
-			UE_LOG(LogTemp, Warning, TEXT("End : Target Actor: %s"), *Target->GetName());
-		}
-		*/
+	
 	}
 
 }
-
 
 EGarenState AGaren::GetGarenState() const
 {
@@ -342,9 +353,9 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 		if (StateComponentBase && StateComponentBase->GetFactionType() != StateComp_Garen->GetFactionType() && StateComponentBase->IsDead() == false) {
 
 			// 각 액터의 종류에 따라 변수 저장
-			
+
 			SetTarget();
-			
+
 
 			/*
 			// 로그 - 임시
@@ -395,7 +406,7 @@ void AGaren::MouseLeftClick(const FInputActionValue& value)
 		return;
 	}
 
-	
+
 
 }
 
@@ -431,7 +442,7 @@ void AGaren::KeyBoard_W(const FInputActionValue& value)
 	ADComp->SetSound(GR_SkillSounds[2]);
 	ADComp->Play();
 
-	
+
 }
 
 void AGaren::KeyBoard_E(const FInputActionValue& value)
@@ -667,12 +678,12 @@ void AGaren::R_Skill_Garen()
 void AGaren::Damaged()
 {
 	// 피격시 가렌의 체력이 남아있을 때
-
-
+	Super::Damaged();
 }
 
 void AGaren::Die()
 {
+	Super::Die();
 	// 피격시 가렌의 체력이 0이하 일 때
 	//GarenAnim->PlayANM_Dead();
 	GarenState = EGarenState::DEAD;
@@ -683,7 +694,6 @@ void AGaren::Die()
 	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
 
 	// 죽고 난 후에는 마우스의 클릭에 캐릭터가 반응하지 않도록 해야 함
-
 }
 
 
