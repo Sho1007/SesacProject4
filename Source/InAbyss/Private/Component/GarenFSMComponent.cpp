@@ -1,15 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-#include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/PlayerController.h>
 
 
 #include "Component/GarenFSMComponent.h"
-#include "Character/Garen.h"
-#include <../../../../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h>
-#include "Component/GarenSkillComponent.h"
-#include "Component/StateComponentBase.h"
-#include "AnimInstance/GarenAnimInstance.h"
-#include "Component/FSMComponent.h"
-#include <../../../../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputTriggers.h>
 /*x
 UGarenFSMComponent::UGarenFSMComponent()
 {
