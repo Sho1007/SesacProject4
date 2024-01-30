@@ -47,10 +47,7 @@ public:	// Mapping
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* IMC;
 
-	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
-	class UGarenFSMComponent* FSMComponent;
-	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
-	class UGarenSkillComponent* SkillComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	class UStateComponentBase* StateComponentBase;
 

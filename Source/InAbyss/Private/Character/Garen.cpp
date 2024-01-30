@@ -14,8 +14,6 @@
 #include "AnimInstance/GarenAnimInstance.h"
 #include "NiagaraComponent.h"
 #include <Components/AudioComponent.h>
-#include "Component/GarenFSMComponent.h"
-#include "Component/GarenSkillComponent.h"
 
 
 // Sets default values
@@ -25,9 +23,7 @@ AGaren::AGaren()
 	PrimaryActorTick.bCanEverTick = true;
 
 
-	FSMComponent = CreateDefaultSubobject<UGarenFSMComponent>(TEXT("FSMComponent"));
-
-	SkillComponent = CreateDefaultSubobject<UGarenSkillComponent>(TEXT("SkillComponent"));
+	
 
 	// 상태 컴포넌트
 	StateComp_Garen = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComp_Garen"));
