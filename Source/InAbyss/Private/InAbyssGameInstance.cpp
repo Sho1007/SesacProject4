@@ -104,6 +104,8 @@ void UInAbyssGameInstance::SetPlayerName(APlayerState* PlayerState)
 
 FString UInAbyssGameInstance::GetPlayerChampion(FName PlayerName)
 {
+	if (SelectedChampionMap.Contains(PlayerName) == false) return TEXT("");
+	
 	return SelectedChampionMap[PlayerName];
 }
 

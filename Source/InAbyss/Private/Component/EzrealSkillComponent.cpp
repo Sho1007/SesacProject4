@@ -3,6 +3,7 @@
 
 #include "Component/EzrealSkillComponent.h"
 
+#include <GameFramework/Character.h>
 #include "Projectile/EzrealQ.h"
 
 void UEzrealSkillComponent::FireQ()
@@ -16,5 +17,6 @@ void UEzrealSkillComponent::FireQ()
 		AEzrealQ* EzrealQ =  GetWorld()->SpawnActor<AEzrealQ>(EzrealQClass,
 			GetOwner()->GetActorLocation(), GetOwner()->GetActorRotation(),
 			Params);
+		EzrealQ->Init(this->GetOwner<ACharacter>());
 	}
 }
