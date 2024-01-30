@@ -14,20 +14,20 @@ void UInAbyssGameInstance::Init()
 
 	PC = Cast<ATempInGamePlayerController>(GetWorld()->GetFirstPlayerController());
 
-	// ¿Â¶óÀÎ ¼¼¼Ç ÀÎÅÍÆäÀÌ½º »ý¼º
+	// ì˜¨ë¼ì¸ ì„¸ì…˜ ì¸í„°íŽ˜ì´ìŠ¤ ìƒì„±
 	auto subsys = IOnlineSubsystem::Get();
 
 	if (subsys) {
-		SessionInterface = subsys->GetSessionInterface(); // »ý¼ºµÈ ÀÎÅÍÆäÀÌ½º¸¦ º¯¼ö¿¡ ÀúÀå
+		SessionInterface = subsys->GetSessionInterface(); // ìƒì„±ëœ ì¸í„°íŽ˜ì´ìŠ¤ë¥¼ ë³€ìˆ˜ì— ì €ìž¥
 
-		// ÄÝ¹é - Æ¯Á¤ Á¶°ÇÀÌ³ª »óÈ²½Ã È£ÃâµÇ´Â ÇÔ¼ö
-		// ¼¼¼ÇÀ» »ý¼ºÇßÀ» ¶§
+		// ì½œë°± - íŠ¹ì • ì¡°ê±´ì´ë‚˜ ìƒí™©ì‹œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜
+		// ì„¸ì…˜ì„ ìƒì„±í–ˆì„ ë•Œ
 		SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UInAbyssGameInstance::OnCreateSessionComplete);
 
-		// ¼¼¼ÇÀ» Ã£¾ÒÀ» ¶§
+		// ì„¸ì…˜ì„ ì°¾ì•˜ì„ ë•Œ
 		SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UInAbyssGameInstance::OnFindSessionComplete);
 
-		// ¼¼¼Ç¿¡ ÀÔÀåÇßÀ» ¶§
+		// ì„¸ì…˜ì— ìž…ìž¥í–ˆì„ ë•Œ
 		SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UInAbyssGameInstance::OnJoinSessionCompleted);
 	}
 
@@ -37,57 +37,57 @@ void UInAbyssGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// µ¿±âÈ­ÇÒ º¯¼ö µî·Ï
+	// ë™ê¸°í™”í•  ë³€ìˆ˜ ë“±ë¡
 	DOREPLIFETIME(UInAbyssGameInstance, ReadyPlayer);
 }
 
 void UInAbyssGameInstance::CreateGameSession(const FString roomName/*, const int32 playerCount*/)
 {
 	
-	// ¼¼¼Ç ¼³Á¤ =======================================
+	// ì„¸ì…˜ ì„¤ì • =======================================
 	FOnlineSessionSettings SessionSettings;
 
-	// 1. Dedicated server »ç¿ëÇÏÁö ¾ÊÀ½
+	// 1. Dedicated server ì‚¬ìš©í•˜ì§€ ì•ŠìŒ
 	SessionSettings.bIsDedicated = false;
 
-	// 2. ·£¼±¸ÅÄª(·ÎÄÃ), ½ºÆÀ¸ÅÄª »ç¿ëÇÒÁö ¿©ºÎ
-	FName subsysName = IOnlineSubsystem::Get()->GetSubsystemName(); // ¼­ºê½Ã½ºÅÛ ÀÌ¸§ ÀúÀå
-	SessionSettings.bIsLANMatch = subsysName == "NULL"; // ´Ù¸¥ °÷°ú ¿Â¶óÀÎÀ¸·Î ¿¬°áµÇÁö ¾Ê¾ÒÀ» °æ¿ì »ç¿ë
+	// 2. ëžœì„ ë§¤ì¹­(ë¡œì»¬), ìŠ¤íŒ€ë§¤ì¹­ ì‚¬ìš©í• ì§€ ì—¬ë¶€
+	FName subsysName = IOnlineSubsystem::Get()->GetSubsystemName(); // ì„œë¸Œì‹œìŠ¤í…œ ì´ë¦„ ì €ìž¥
+	SessionSettings.bIsLANMatch = subsysName == "NULL"; // ë‹¤ë¥¸ ê³³ê³¼ ì˜¨ë¼ì¸ìœ¼ë¡œ ì—°ê²°ë˜ì§€ ì•Šì•˜ì„ ê²½ìš° ì‚¬ìš©
 
-	// 3. ¸ÅÄªÀÌ ¿Â¶óÀÎÀ» ÅëÇØ ³ëÃâ Çã¿ë
+	// 3. ë§¤ì¹­ì´ ì˜¨ë¼ì¸ì„ í†µí•´ ë…¸ì¶œ í—ˆìš©
 	SessionSettings.bShouldAdvertise = true;
 
-	// 4. ¿Â¶óÀÎ »óÅÂ Á¤º¸¸¦ È°¿ë
+	// 4. ì˜¨ë¼ì¸ ìƒíƒœ ì •ë³´ë¥¼ í™œìš©
 	SessionSettings.bUsesPresence = true;
 
-	// 5. °ÔÀÓ ÁøÇà Áß¿¡ join °¡´É 
+	// 5. ê²Œìž„ ì§„í–‰ ì¤‘ì— join ê°€ëŠ¥ 
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bAllowJoinViaPresence = true;
 
-	// 6. ÃÖ´ë Çã¿ë ÀÎ¿ø ¼ö
+	// 6. ìµœëŒ€ í—ˆìš© ì¸ì› ìˆ˜
 	//SessionSettings.NumPublicConnections = playerCount; 
-	SessionSettings.NumPublicConnections = 2; // ÀÓ½Ã·Î 2¸í
+	SessionSettings.NumPublicConnections = 2; // ìž„ì‹œë¡œ 2ëª…
 
 
-	// 7. Ä¿½ºÅÒ ¿É¼Ç -> ·Ò³×ÀÓ
+	// 7. ì»¤ìŠ¤í…€ ì˜µì…˜ -> ë¡¬ë„¤ìž„
 	SessionSettings.Set(FName("ROOM_NAME"), roomName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	SessionSettings.Set(FName("HOST_NAME"), MySessionName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	// netid
 	FUniqueNetIdPtr netID = GetWorld()->GetFirstLocalPlayerFromController()->GetUniqueNetIdForPlatformUser().GetUniqueNetId();
-	// ¼¼¼Ç ¼³Á¤ =======================================
+	// ì„¸ì…˜ ì„¤ì • =======================================
 
 	
-	// *¼¼¼Ç »ý¼º
+	// *ì„¸ì…˜ ìƒì„±
 	SessionInterface->CreateSession(*netID, FName(MySessionName), SessionSettings);
 
 }
 
 void UInAbyssGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
-	// »ý¼ºÇÑ ¼¼¼Ç¿¡ ÀÔÀå - ÀÔÀå °æ·Î Àß Àû¾î¾ß ÇÔ(·¹º§ °æ·Î || "/Game/KHS/KHSMap.KHSMap'") 
+	// ìƒì„±í•œ ì„¸ì…˜ì— ìž…ìž¥ - ìž…ìž¥ ê²½ë¡œ ìž˜ ì ì–´ì•¼ í•¨(ë ˆë²¨ ê²½ë¡œ || "/Game/KHS/KHSMap.KHSMap'") 
 	if (bWasSuccessful) {
-		GetWorld()->ServerTravel(TEXT("/Game/KHS/Map/ChampionSelectionMap?listen"), true); // => Ã¨ÇÇ¾ð ¼±ÅÃ ¸ÊÀ¸·Î ÀÌµ¿ //
+		GetWorld()->ServerTravel(TEXT("/Game/KHS/Map/ChampionSelectionMap?listen"), true); // => ì±”í”¼ì–¸ ì„ íƒ ë§µìœ¼ë¡œ ì´ë™ //
 	}//"Game/OSH/Level/L_Laboratory?listen'"
 
 }
@@ -102,30 +102,35 @@ void UInAbyssGameInstance::SetPlayerName(APlayerState* PlayerState)
 	PlayerNameMap.Add(PlayerState->GetUniqueId().ToString(), PlayerState->GetPlayerName());
 }
 
+FString UInAbyssGameInstance::GetPlayerChampion(FName PlayerName)
+{
+	return SelectedChampionMap[PlayerName];
+}
+
 void UInAbyssGameInstance::FindGameSessions()
 {
 	
-	// °Ë»öÁ¶°Ç¼³Á¤ ================================================== 
+	// ê²€ìƒ‰ì¡°ê±´ì„¤ì • ================================================== 
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 
-	// 1. presence ¼³Á¤ÀÌ trueÀÎ ¼¼¼Ç¸¸ °Ë»ö °¡´É
+	// 1. presence ì„¤ì •ì´ trueì¸ ì„¸ì…˜ë§Œ ê²€ìƒ‰ ê°€ëŠ¥
 	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
-	// 2. ´Ù¸¥ ¿Â¶óÀÎ°ú ¿¬°áµÇÁö ¾ÊÀº °Í¸¸ °Ë»ö °¡´É
+	// 2. ë‹¤ë¥¸ ì˜¨ë¼ì¸ê³¼ ì—°ê²°ë˜ì§€ ì•Šì€ ê²ƒë§Œ ê²€ìƒ‰ ê°€ëŠ¥
 	SessionSearch->bIsLanQuery = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
 
-	// 3. ÃÖ´ë °Ë»ö ¼¼¼Ç ¼ö
+	// 3. ìµœëŒ€ ê²€ìƒ‰ ì„¸ì…˜ ìˆ˜
 	SessionSearch->MaxSearchResults = 10;
-	// °Ë»öÁ¶°Ç¼³Á¤ ================================================== 
+	// ê²€ìƒ‰ì¡°ê±´ì„¤ì • ================================================== 
 
 
 
-	// *°Ë»ö ½ÇÇà
+	// *ê²€ìƒ‰ ì‹¤í–‰
 	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 
 	// -------------------------
 	
-	// ¹æ °Ë»ö ÁßÀÓÀ» Ç¥½Ã
+	// ë°© ê²€ìƒ‰ ì¤‘ìž„ì„ í‘œì‹œ
 	onSearchState.Broadcast(true);
 
 }
@@ -139,7 +144,7 @@ void UInAbyssGameInstance::OnFindSessionComplete(bool bWasSuccessful)
 		return;
 	}
 
-	// ¼¼¼Ç°Ë»ö°á°ú
+	// ì„¸ì…˜ê²€ìƒ‰ê²°ê³¼
 	auto results = SessionSearch->SearchResults;
 	//PRINTLOG(TEXT("Search Result Count : %d"), results.Num());
 
@@ -152,18 +157,18 @@ void UInAbyssGameInstance::OnFindSessionComplete(bool bWasSuccessful)
 		FSessionInfo sessionInfo;
 		sessionInfo.index = i;
 
-		// 1. ¹æÀÌ¸§
+		// 1. ë°©ì´ë¦„
 		//FString roomName;
 		sr.Session.SessionSettings.Get(FName("ROOM_NAME"), sessionInfo.roomName);
 
-		// 2. È£½ºÆ®ÀÌ¸§
+		// 2. í˜¸ìŠ¤íŠ¸ì´ë¦„
 		//FString hostName;
 		sr.Session.SessionSettings.Get(FName("HOST_NAME"), sessionInfo.hostName);
 
-		// pc ¼ÒÀ¯ÀÚ ÀÌ¸§
+		// pc ì†Œìœ ìž ì´ë¦„
 		FString ownerName = sr.Session.OwningUserName;
 
-		// 3. ÇÃ·¹ÀÌ¾î¼ö (ÃÖ´ë°¡´É¼ö - ÇöÀçÀÔÀå°¡´É¼ö)
+		// 3. í”Œë ˆì´ì–´ìˆ˜ (ìµœëŒ€ê°€ëŠ¥ìˆ˜ - í˜„ìž¬ìž…ìž¥ê°€ëŠ¥ìˆ˜)
 		int32 maxPlayerCount = sr.Session.SessionSettings.NumPublicConnections;
 		int32 currentPlayerCount = maxPlayerCount - sr.Session.NumOpenPublicConnections;
 
@@ -171,14 +176,14 @@ void UInAbyssGameInstance::OnFindSessionComplete(bool bWasSuccessful)
 
 		//PRINTLOG(TEXT("%s"), *sessionInfo.ToString());
 
-		// ½½·Ô Ãß°¡
+		// ìŠ¬ë¡¯ ì¶”ê°€
 		// LoginWidget
-		// ·¹º§ºí·çÇÁ¸°Æ®¿¡¼­ ÀÎ½ºÅÏ½º °¡Á®¿Í¼­
+		// ë ˆë²¨ë¸”ë£¨í”„ë¦°íŠ¸ì—ì„œ ì¸ìŠ¤í„´ìŠ¤ ê°€ì ¸ì™€ì„œ
 
 
 		// -------------------------------------------
 
-		// ¹æ°Ë»ö ¿Ï·áÀÓÀ» Ç¥½Ã
+		// ë°©ê²€ìƒ‰ ì™„ë£Œìž„ì„ í‘œì‹œ
 		onSearchCompleted.Broadcast(sessionInfo);
 
 	}
@@ -199,11 +204,11 @@ void UInAbyssGameInstance::JoinSelectedSession(int32 roomIndex)
 void UInAbyssGameInstance::OnJoinSessionCompleted(FName sessionName, EOnJoinSessionCompleteResult::Type result)
 {
 	
-	// Client °¡ ¹æÀ¸·Î µé¾î°¡¾ß ÇÑ´Ù.
+	// Client ê°€ ë°©ìœ¼ë¡œ ë“¤ì–´ê°€ì•¼ í•œë‹¤.
 	// -> Client Travel
 	if (result == EOnJoinSessionCompleteResult::Success) {
 		
-		// ¼­¹ö°¡ ¸¸µç ¼¼¼ÇÀÇ urlÀÌ ÇÊ¿ä
+		// ì„œë²„ê°€ ë§Œë“  ì„¸ì…˜ì˜ urlì´ í•„ìš”
 		FString url;
 		SessionInterface->GetResolvedConnectString(sessionName, url);
 
@@ -211,7 +216,7 @@ void UInAbyssGameInstance::OnJoinSessionCompleted(FName sessionName, EOnJoinSess
 
 		if (url.IsEmpty() == false) {
 
-			// ¹æ¿¡ ÀÔÀå
+			// ë°©ì— ìž…ìž¥
 			auto pc = GetWorld()->GetFirstPlayerController();
 			pc->ClientTravel(url, ETravelType::TRAVEL_Absolute);
 
