@@ -3,7 +3,9 @@
 
 #include "Projectile/EzrealQ.h"
 
+#include "Component/StateComponentBase.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/Character.h"
 
 // Sets default values
 AEzrealQ::AEzrealQ()
@@ -22,7 +24,27 @@ AEzrealQ::AEzrealQ()
 void AEzrealQ::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AEzrealQ::OnComponentBeginOverlap);	
+	}
+}
+
+void AEzrealQ::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (Indicator == nullptr) return;
 	
+	if (UStateComponentBase* StateComponent = OtherActor->GetComponentByClass<UStateComponentBase>())
+	{
+		if (StateComponent->GetFactionType() != FactionType && StateComponent->GetObjectType() != EObjectType::BUILDING)
+		{
+			UStateComponentBase* IndicatorStateComponent = Indicator->GetComponentByClass<UStateComponentBase>();
+			StateComponent->ApplyDamage(IndicatorStateComponent->GetAttackDamage(), IndicatorStateComponent->GetAbilityPower());
+			Destroy();
+		}
+	}
 }
 
 // Called every frame
@@ -30,4 +52,10 @@ void AEzrealQ::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	AddActorWorldOffset(GetActorForwardVector() * 50.f, false);
+}
+
+void AEzrealQ::Init(ACharacter* NewIndicator)
+{
+	Indicator = NewIndicator;
 }

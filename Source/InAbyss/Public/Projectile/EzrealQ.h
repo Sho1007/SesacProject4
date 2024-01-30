@@ -26,11 +26,19 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void Init(ACharacter* NewIndicator);
+
+	UFUNCTION()
+	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	
 private:
+	ACharacter* Indicator;
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	USphereComponent* CollisionComponent;
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	UStaticMeshComponent* MeshComponent;
 
-	EFactionType TargetFaction;
+	EFactionType FactionType;
 };
+
