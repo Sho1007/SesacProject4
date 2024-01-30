@@ -68,6 +68,8 @@ public: // 세션 생성 기능
 	// 방 생성 완료시 콜백
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 
+	void SetPlayerChampion(FName PlayerSessionName, FString ChampionName);
+	void SetPlayerName(APlayerState* PlayerState);
 public:
 	// 검색 조건들
 	TSharedPtr<FOnlineSessionSearch > SessionSearch;
@@ -92,6 +94,9 @@ public:	// 세션 입장 기능
 	void OnJoinSessionCompleted(FName sessionName, EOnJoinSessionCompleteResult::Type result);
 
 public:
+	TMap<FName, FString> SelectedChampionMap;
+	TMap<FString, FString> PlayerNameMap;
+
 	UPROPERTY(Replicated)
 	int32 ReadyPlayer = 0;
 

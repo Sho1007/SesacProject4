@@ -6,6 +6,7 @@
 #include <OnlineSessionSettings.h>
 #include "TestTemp/TempInGamePlayerController.h"
 #include <../../../../../../../Source/Runtime/Engine/Public/Net/UnrealNetwork.h>
+#include <TestTemp/InAbyssPlayerState.h>
 
 void UInAbyssGameInstance::Init()
 {	
@@ -89,6 +90,16 @@ void UInAbyssGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasS
 		GetWorld()->ServerTravel(TEXT("/Game/KHS/Map/ChampionSelectionMap?listen"), true); // => Ã¨ÇÇ¾ð ¼±ÅÃ ¸ÊÀ¸·Î ÀÌµ¿ //
 	}//"Game/OSH/Level/L_Laboratory?listen'"
 
+}
+
+void UInAbyssGameInstance::SetPlayerChampion(FName PlayerSessionName, FString ChampionName)
+{
+	SelectedChampionMap.Add(PlayerSessionName, ChampionName);
+}
+
+void UInAbyssGameInstance::SetPlayerName(APlayerState* PlayerState)
+{
+	PlayerNameMap.Add(PlayerState->GetUniqueId().ToString(), PlayerState->GetPlayerName());
 }
 
 void UInAbyssGameInstance::FindGameSessions()
@@ -231,6 +242,11 @@ void UInAbyssGameInstance::AddReadyPlayer()
 
 	if (ReadyPlayer >= 2) {
 		PC->ActivateStartButton();
+
+		for (auto Iter : SelectedChampionMap)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UInAbyssGameInstance::AddReadyPlayer : PlayerName : %s, Champion Name : %s"), *Iter.Key.ToString(), *Iter.Value);
+		}
 	}
 
 }

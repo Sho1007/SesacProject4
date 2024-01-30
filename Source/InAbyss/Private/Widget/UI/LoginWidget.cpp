@@ -9,7 +9,9 @@
 #include <Components/Slider.h>
 #include <Components/WidgetSwitcher.h>
 #include <Components/ScrollBox.h>
+#include <GameFramework/PlayerState.h>
 #include "Widget/UI/SessionSlotWidget.h"
+#include <TestTemp/InAbyssPlayerState.h>
 
 void ULoginWidget::NativeConstruct()
 {
@@ -63,7 +65,6 @@ void ULoginWidget::SwitchCreateRoomPanel()
 	if (userName.IsEmpty() == false) {
 
 		GI->MySessionName = userName;
-
 	}
 
 	WidgetSwitcher->SetActiveWidgetIndex(1);
@@ -77,7 +78,6 @@ void ULoginWidget::SwitchFindPanel()
 	if (userName.IsEmpty() == false) {
 
 		GI->MySessionName = userName;
-
 	}
 
 	WidgetSwitcher->SetActiveWidgetIndex(2);
