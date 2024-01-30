@@ -41,30 +41,32 @@ public:
 public: // Create Room
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
 	class UEditableText* edit_RoomName;
-
+	/*
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
 	class UEditableText* edit_Password;
 
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
 	class UTextBlock* txt_PlayerCount;
+	*/
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
 	class UButton* btn_CreateGameRoom;
 
-
+	/*
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
 	class USlider* Slider_PlayerNumber;
-
+	*/
 public:
 	// 방 생성 기능 - 챔피언 선택 맵으로 이동
 	UFUNCTION()
 	void CreateGameRoom();
 	
+	/*
 	// PlayerCount 변경 기능 - Slider
 	UFUNCTION()
 	void OnValueChanged(float value);
+	*/
 
 public: // Find Room
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))

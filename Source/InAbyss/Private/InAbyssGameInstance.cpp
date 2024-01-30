@@ -4,10 +4,15 @@
 #include "InAbyssGameInstance.h"
 #include <OnlineSubsystem.h>
 #include <OnlineSessionSettings.h>
+#include "TestTemp/TempInGamePlayerController.h"
+#include <../../../../../../../Source/Runtime/Engine/Public/Net/UnrealNetwork.h>
+#include <TestTemp/InAbyssPlayerState.h>
 
 void UInAbyssGameInstance::Init()
 {	
 	Super::Init();
+
+	PC = Cast<ATempInGamePlayerController>(GetWorld()->GetFirstPlayerController());
 
 	// 온라인 세션 인터페이스 생성
 	auto subsys = IOnlineSubsystem::Get();
@@ -28,7 +33,15 @@ void UInAbyssGameInstance::Init()
 
 }
 
-void UInAbyssGameInstance::CreateGameSession(const FString roomName, const int32 playerCount)
+void UInAbyssGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 동기화할 변수 등록
+	DOREPLIFETIME(UInAbyssGameInstance, ReadyPlayer);
+}
+
+void UInAbyssGameInstance::CreateGameSession(const FString roomName/*, const int32 playerCount*/)
 {
 	
 	// 세션 설정 =======================================
@@ -52,7 +65,9 @@ void UInAbyssGameInstance::CreateGameSession(const FString roomName, const int32
 	SessionSettings.bAllowJoinViaPresence = true;
 
 	// 6. 최대 허용 인원 수
-	SessionSettings.NumPublicConnections = playerCount;
+	//SessionSettings.NumPublicConnections = playerCount; 
+	SessionSettings.NumPublicConnections = 2; // 임시로 2명
+
 
 	// 7. 커스텀 옵션 -> 롬네임
 	SessionSettings.Set(FName("ROOM_NAME"), roomName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
@@ -72,9 +87,19 @@ void UInAbyssGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasS
 {
 	// 생성한 세션에 입장 - 입장 경로 잘 적어야 함(레벨 경로 || "/Game/KHS/KHSMap.KHSMap'") 
 	if (bWasSuccessful) {
-		GetWorld()->ServerTravel(TEXT("/Game/KHS/Map/ChampionSelectionMap?listen")); // => 챔피언 선택 맵으로 이동 //
+		GetWorld()->ServerTravel(TEXT("/Game/KHS/Map/ChampionSelectionMap?listen"), true); // => 챔피언 선택 맵으로 이동 //
 	}//"Game/OSH/Level/L_Laboratory?listen'"
 
+}
+
+void UInAbyssGameInstance::SetPlayerChampion(FName PlayerSessionName, FString ChampionName)
+{
+	SelectedChampionMap.Add(PlayerSessionName, ChampionName);
+}
+
+void UInAbyssGameInstance::SetPlayerName(APlayerState* PlayerState)
+{
+	PlayerNameMap.Add(PlayerState->GetUniqueId().ToString(), PlayerState->GetPlayerName());
 }
 
 void UInAbyssGameInstance::FindGameSessions()
@@ -201,3 +226,27 @@ void UInAbyssGameInstance::OnJoinSessionCompleted(FName sessionName, EOnJoinSess
 
 }
 
+void UInAbyssGameInstance::AddReadyPlayer()
+{
+	
+	UE_LOG(LogTemp, Warning, TEXT("Success3"));
+
+	//ReadyPlayer++;
+
+	UE_LOG(LogTemp, Warning, TEXT("ReadyPlayer : %d"), ReadyPlayer)
+
+
+	GetWorld()->GetFirstPlayerController()->GetActorNameOrLabel();
+
+	PC = Cast<ATempInGamePlayerController>(GetWorld()->GetFirstPlayerController());
+
+	if (ReadyPlayer >= 2) {
+		PC->ActivateStartButton();
+
+		for (auto Iter : SelectedChampionMap)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UInAbyssGameInstance::AddReadyPlayer : PlayerName : %s, Champion Name : %s"), *Iter.Key.ToString(), *Iter.Value);
+		}
+	}
+
+}

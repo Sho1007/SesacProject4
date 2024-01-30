@@ -3,34 +3,37 @@
 
 #include "Widget/UI/ChampionSelectionWidget.h"
 #include "InAbyssGameInstance.h"
+#include <GameFramework/PlayerState.h>
+#include <GameFramework/PlayerController.h>
 #include <Components/TextBlock.h>
 #include <Components/Button.h>
 #include <Kismet/GameplayStatics.h>
 #include "GameMode/LoginGameMode.h"
 #include <Net/UnrealNetwork.h>
+#include "TestTemp/TempInGamePlayerController.h"
+#include <InAbyss/InAbyss.h>
 
 
 void UChampionSelectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	// 게임 인스턴스
-	GI = Cast<UInAbyssGameInstance>(GetWorld()->GetGameInstance());
-
+	
 	// 챔피언 선택
 	btn_Champ1->OnClicked.AddDynamic(this, &UChampionSelectionWidget::SetChampion1);
 	btn_Champ2->OnClicked.AddDynamic(this, &UChampionSelectionWidget::SetChampion2);
 	btn_Champ3->OnClicked.AddDynamic(this, &UChampionSelectionWidget::SetChampion3);
 
-	// 게임 시작
+	// 게임 시작 - 다음 레벨 오픈
 	btn_Selection->OnClicked.AddDynamic(this, &UChampionSelectionWidget::OpenGameLevel);
 
+	
 
-
-	gm = Cast<ALoginGameMode>(GetWorld()->GetAuthGameMode());
-
-	if (gm && gm->HasAuthority()) {
+	if (GM && GM->HasAuthority()) {
 		bIsServer = true;
+		
+		btn_Selection->SetIsEnabled(false);
+
 	}
 
 	if (bIsServer == true) { // 서버라면
@@ -38,7 +41,35 @@ void UChampionSelectionWidget::NativeConstruct()
 	}
 	else if (bIsServer == false) { // 클라이턴트라면
 		SetGuestPlayerName();
+		btn_Selection->SetVisibility(ESlateVisibility::Hidden);
 	}
+
+}
+
+bool UChampionSelectionWidget::Initialize()
+{
+	if (Super::Initialize() == false) return false;
+
+	// 게임 인스턴스
+	GI = Cast<UInAbyssGameInstance>(GetWorld()->GetGameInstance());
+	GM = Cast<ALoginGameMode>(GetWorld()->GetAuthGameMode());
+	
+	PC = GetWorld()->GetFirstPlayerController<ATempInGamePlayerController>();
+	
+
+	return true;
+}
+
+void UChampionSelectionWidget::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // 변수 동기화 처리
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 동기화할 변수 등록
+	DOREPLIFETIME(UChampionSelectionWidget, txt_PlayerName1);
+	DOREPLIFETIME(UChampionSelectionWidget, txt_PlayerName2);
+	DOREPLIFETIME(UChampionSelectionWidget, SelectedChampionIndex);
+
+
 
 }
 
@@ -49,37 +80,15 @@ void UChampionSelectionWidget::SetHostPlayerName()
 
 }
 
-void UChampionSelectionWidget::ServerRPCSetHostPlayerName_Implementation()
-{
-
-}
-
-void UChampionSelectionWidget::MultiRPCSetHostPlayerName_Implementation(const FText& PlayerName)
-{
-
-}
 
 void UChampionSelectionWidget::SetGuestPlayerName()
 {
 
-	ServerRPCSetGuestPlayerName();
-
-}
-
-void UChampionSelectionWidget::ServerRPCSetGuestPlayerName_Implementation()
-{
 	FText PlayerNameText = FText::FromString(GI->MySessionName);
-
-	MultiRPCSetGuestPlayerName(PlayerNameText);
-
-}
-
-void UChampionSelectionWidget::MultiRPCSetGuestPlayerName_Implementation(const FText& PlayerName)
-{
-
-	txt_PlayerName2->SetText(PlayerName);
+	txt_PlayerName2->SetText(PlayerNameText);
 
 }
+
 
 // ---------------------------------------------------------------
 
@@ -103,6 +112,7 @@ void UChampionSelectionWidget::SetChampion3()
 
 void UChampionSelectionWidget::SetChampion(int32 ChampionIndex)
 {
+	
 	FString ChampionName;
 
 	// 인덱스에 따라 선택된 챔피언을 결정
@@ -118,7 +128,7 @@ void UChampionSelectionWidget::SetChampion(int32 ChampionIndex)
 		ChampionName = TEXT("Ezreal");
 		break;
 	default:
-		ChampionName = TEXT("NoneChampion");
+		ChampionName = TEXT("Champion Name");
 		break;
 	}
 
@@ -127,10 +137,31 @@ void UChampionSelectionWidget::SetChampion(int32 ChampionIndex)
 	FText ChampionText = FText::FromString(ChampionName);
 	txt_Champion->SetText(ChampionText);
 
+	
+	//Cast<ATempInGamePlayerController>(GetOwningPlayer())->ServerRPCCallPlayerNum();
 
-	// 선택한 챔피언을 저장하고, 다음 레벨에서 스폰할 수 있도록 전달해야 함
+
+	Cast<ATempInGamePlayerController>(GetOwningPlayer())->CallPlayerNum();
+	Cast<ATempInGamePlayerController>(GetOwningPlayer())->ServerRPC_SetPlayerChampion(ChampionName);
 
 
+	// PRINTLOG(TEXT("PlayerName : %s"), *GetOwningPlayer()->GetPlayerState()->GetPlayerName());
+	UE_LOG(LogTemp, Warning, TEXT("UChampionSelectionWidget::SetChampion) PlayerName : %s"), *GetOwningPlayer()->GetPlayerState<APlayerState>()->GetPlayerName());
+
+	//
+
+
+
+
+	//UE_LOG(LogTemp, Warning, TEXT("====================End===================="));
+
+	// 
+
+}
+
+void UChampionSelectionWidget::UseStartbtn()
+{
+	btn_Selection->SetIsEnabled(true);
 }
 
 
@@ -140,49 +171,9 @@ void UChampionSelectionWidget::OpenGameLevel()
 		return;
 	}
 
-	ServerRPCOpenGameLevel();
-}
-
-
-void UChampionSelectionWidget::ServerRPCOpenGameLevel_Implementation()
-{
-	//FString Options = FString::Printf(TEXT("SelectedChampion=%d"), SelectedChampionIndex); // 선택한 캐릭터 인덱스를 문자열로 변환하여 전달
-	
 	// 이동할 레벨 지정
-	FString NextLevelName = TEXT("L_Laboratory"); // KHSMap
+	FString NextLevelName = TEXT("L_Laboratory"); // KHSMap // L_Laboratory // NewWorld_JSH
 
 	// 레벨을 이동시킴
 	GetWorld()->ServerTravel(*NextLevelName);
-
-
-}
-
-void UChampionSelectionWidget::MultiRPCOpenGameLevel_Implementation(const FText& PlayerName)
-{
-
-}
-
-void UChampionSelectionWidget::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // 변수 동기화 처리
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	// 동기화할 변수 등록
-	DOREPLIFETIME(UChampionSelectionWidget, txt_PlayerName1);
-	DOREPLIFETIME(UChampionSelectionWidget, txt_PlayerName2);
-	DOREPLIFETIME(UChampionSelectionWidget, SelectedChampionIndex);
-
-
-}
-
-void UChampionSelectionWidget::OnRep_UpdatePlayerName1()
-{
-	
-
-
-}
-
-void UChampionSelectionWidget::OnRep_UpdatePlayerName2()
-{
-
-
 }
