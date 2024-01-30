@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "ChampionAnimInstance.h"
 #include "GarenAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class INABYSS_API UGarenAnimInstance : public UAnimInstance
+class INABYSS_API UGarenAnimInstance : public UChampionAnimInstance
 {
 	GENERATED_BODY()
 	

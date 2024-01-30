@@ -19,9 +19,6 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-
-	// 상태는 중복될 수 없으므로, 하나의 변수만 true일 것임
-
 	// 기본
 	if (Owner && Owner->GarenState == EGarenState::IDLE) {
 		// 기본 애니메이션 
@@ -42,17 +39,6 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 		bIsMove_Garen = false;
 	}
 
-	/*
-	// 공격
-	if (Owner && Owner->GarenState == EGarenState::ATTACK) {
-		// 공격 애니메이션
-		bIsAttack_Garen = true;
-	}
-	else
-	{
-		bIsAttack_Garen = false;
-	}
-	*/
 
 	// 죽음
 	if (Owner && Owner->GarenState == EGarenState::DEAD) {
@@ -63,11 +49,6 @@ void UGarenAnimInstance::NativeUpdateAnimation(float DeltaSeconds) // 블루프린트
 	{
 		bIsDead_Garen = false;
 	}
-
-
-	//UE_LOG(LogTemp, Warning, TEXT("bIsSkilling_Q is: %d"), bIsSkilling_Q);
-	//UE_LOG(LogTemp, Warning, TEXT("bIsSkill_Q is: %d"), bIsSkill_Q );
-
 
 }
 // 플레이할 몽타주 함수 - 캐릭터에서 호출 ====================================================
@@ -83,7 +64,6 @@ void UGarenAnimInstance::PlayANM_Move()
 {
 	if (ANM_Move) {
 
-		//StopAllMontages(0.f); // 실행 중이던 모든 몽타주 정지 
 		Montage_Play(ANM_Move);
 	}
 }
@@ -92,8 +72,6 @@ void UGarenAnimInstance::PlayANM_Attack()
 {
 
 	if (ANM_Attack_Array.Num() > 0) {
-		//StopAllMontages(0.f); // 실행 중이던 모든 몽타주 정지 
-
 		
 		// 일반 공격 중이 아닐 때
 		if (bIsAttack_Garen == false) {
@@ -116,7 +94,6 @@ void UGarenAnimInstance::PlayANM_Attack()
 				Owner->ADComp->Play();
 
 			}
-			
 
 		}
 		// 일반 공격 중일 때 // Q스킬이 활성화 되있고 // 스킬 사용중이 아니라면
@@ -168,7 +145,6 @@ void UGarenAnimInstance::PlayANM_E()
 			
 		}
 
-		
 	}
 }
 void UGarenAnimInstance::PlayANM_R()
@@ -183,7 +159,6 @@ void UGarenAnimInstance::PlayANM_R()
 			bIsSkilling_R = true;
 		
 		}
-
 
 	}
 }
@@ -204,9 +179,6 @@ void UGarenAnimInstance::AnimNotify_Attack_Garen()
 void UGarenAnimInstance::AnimNotify_EndAttack_Garen()
 {
 	// 공격 애니메이션 호출하는 동안 다시 애니메이션이 호출되지 않고, 끝나면 다시 공격 애니메이션을 호출하도록
-
-	//UE_LOG(LogTemp, Warning, TEXT("CALLCALLCALLCALLCALL"));
-	
 
 	bIsAttack_Garen = false;
 
@@ -236,8 +208,6 @@ void UGarenAnimInstance::AnimNotify_Skill_E()
 	
 	Owner->E_Skill_Garen();
 
-	//Owner->ADComp->SetSound(Owner->GR_SkillSounds[4]);
-	//Owner->ADComp->Play();
 }
 
 void UGarenAnimInstance::AnimNotify_EndSkill_E()
