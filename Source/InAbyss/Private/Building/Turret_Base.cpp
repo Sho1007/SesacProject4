@@ -319,42 +319,6 @@ void ATurret_Base::NotifyActorEndOverlap(AActor* OtherActor)
 
 	// => 이탈한 OtherActor의 클래스를 검사한 뒤, 클래스에 해당하는 배열에서 해당 액터를 제거해야 함
 
-	// test ==================================================================================================
-
-	// 포탑의 범위에서 벗어난 액터는 배열에서 제거 -> 충돌이 해제된 액터를 배열에서 제거한다. 
-	//DetectTargets_Test.Remove(OtherActor); // 사실상 기능으로는 이 코드만 필요함
-
-	/*
-	// 포탑에 접근 중인 액터가 남아있는지 검사하는 로그
-	if (DetectTargets_Test.Num() == 0) {
-		UE_LOG(LogTemp, Warning, TEXT("No Detect"));
-
-	}
-	else {
-		for (AActor* Actor : DetectTargets_Test)
-		{
-			if (Actor)
-			{
-				// AActor* 타입의 주소값을 출력하거나, 해당 액터의 이름 등을 출력할 수 있습니다.
-				UE_LOG(LogTemp, Warning, TEXT("Detected Actor: %s"), *Actor->GetName());
-			}
-		}
-	}
-	*/
-
-	/*
-	if (OtherActor->IsA<AMinionBase>()) {
-		DetectTargets_MinionBase_Test.Remove(OtherActor);
-
-	}
-	else if (OtherActor->IsA<ACharacter>()) { // 캐릭터를 감지한 경우
-		DetectTargets_Chracter_Test.Remove(OtherActor);
-
-	}
-	*/
-	// test ==================================================================================================
-
-
 	// 상태 컴포넌트를 갖고 있고, 같은 팀이 아니라면
 	if (OtherActor->GetComponentByClass<UStateComponentBase>() && OtherActor->GetComponentByClass<UStateComponentBase>()->GetFactionType() != this->StateComponent_Building->GetFactionType()) {
 
@@ -457,45 +421,6 @@ void ATurret_Base::RetargetCurrentTarget()
 	}
 
 
-
-	// test ==================================================================================================
-	// 남아있는 배열이 있다면, 0번 인덱스를 공격 대상으로 함 
-	/*
-	if (DetectTargets_Test.Num() > 0) {
-		CurrentTarget = DetectTargets_Test[0];
-
-		return;
-
-
-		// 타겟을 출력하는 로그
-		if (CurrentTarget) {
-			UE_LOG(LogTemp, Warning, TEXT("CurrentTarget : %s"), *CurrentTarget->GetName());
-
-		}
-		else if (CurrentTarget == nullptr) {
-			UE_LOG(LogTemp, Warning, TEXT("No CurrentTarget"));
-
-		}
-
-	}
-	*/
-
-	/*
-	if (DetectTargets_MinionBase_Test.Num() > 0) {
-		CurrentTarget = DetectTargets_MinionBase_Test[0];
-
-		return;
-
-	}
-	else if (DetectTargets_Chracter_Test.Num() > 0) {
-		CurrentTarget = DetectTargets_Chracter_Test[0];
-
-		return;
-	}
-	*/
-
-	// test ==================================================================================================
-
 	if (DetectTargets_SuperOrCanon.Num() > 0) {
 		CurrentTarget = DetectTargets_SuperOrCanon[0];
 
@@ -588,26 +513,6 @@ void ATurret_Base::Die()
 		CurrentTarget = nullptr;
 	}
 
-
-	// test ------------------------------------------------------------------
-	// 임시 : 감지배열도 모두 null로 변경 
-	/*
-	if (DetectTargets_Test.Num() > 0) {
-		DetectTargets_Test.Reset();
-
-	}
-	*/
-
-	/*
-	if (DetectTargets_MinionBase_Test.Num() > 0) {
-		DetectTargets_MinionBase_Test.Reset();
-	}
-	if (DetectTargets_Chracter_Test.Num() > 0) {
-		DetectTargets_Chracter_Test.Reset();
-	}
-	*/
-
-	// test ------------------------------------------------------------------
 
 	if (DetectTargets_SuperOrCanon.Num() > 0) {
 		DetectTargets_SuperOrCanon.Reset();

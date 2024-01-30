@@ -4,6 +4,7 @@
 #include "AnimInstance/GarenAnimInstance.h"
 #include "Character/Garen.h"
 #include "Component/StateComponentBase.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Components/AudioComponent.h>
 
 void UGarenAnimInstance::NativeBeginPlay()
 {
@@ -111,6 +112,9 @@ void UGarenAnimInstance::PlayANM_Attack()
 			{
 				Montage_Play(ANM_Attack_Array[IndexNumber]);
 
+				Owner->ADComp->SetSound(Owner->GR_Sounds[IndexNumber]);
+				Owner->ADComp->Play();
+
 			}
 			
 
@@ -129,6 +133,10 @@ void UGarenAnimInstance::PlayANM_Dead()
 	if (ANM_Dead && Owner->GarenState != EGarenState::DEAD) {
 		StopAllMontages(0.f); // 실행 중이던 모든 몽타주 정지 
 		Montage_Play(ANM_Dead);
+
+		Owner->ADComp->SetSound(Owner->GR_Sounds[2]);
+		Owner->ADComp->Play();
+
 	}
 
 }
@@ -139,6 +147,9 @@ void UGarenAnimInstance::PlayANM_Q()
 	bIsSkilling_Q = true;
 
 	Montage_Play(ANM_Skill_Q);
+
+	Owner->ADComp->SetSound(Owner->GR_SkillSounds[1]);
+	Owner->ADComp->Play();
 }
 void UGarenAnimInstance::PlayANM_E()
 {
@@ -148,6 +159,10 @@ void UGarenAnimInstance::PlayANM_E()
 		if (bIsSkilling_E == false) {
 
 			Montage_Play(ANM_Skill_E);
+
+			Owner->ADComp->SetSound(Owner->GR_SkillSounds[3]);
+			Owner->ADComp->Play();
+
 
 			bIsSkilling_E = true;
 			
@@ -221,7 +236,8 @@ void UGarenAnimInstance::AnimNotify_Skill_E()
 	
 	Owner->E_Skill_Garen();
 
-
+	//Owner->ADComp->SetSound(Owner->GR_SkillSounds[4]);
+	//Owner->ADComp->Play();
 }
 
 void UGarenAnimInstance::AnimNotify_EndSkill_E()
@@ -237,6 +253,8 @@ void UGarenAnimInstance::AnimNotify_EndSkill_E()
 void UGarenAnimInstance::AnimNotify_Skill_R()
 {
 	// 지정한 대상에게 데미지 - 적 챔피언 한정
+	Owner->ADComp->SetSound(Owner->GR_SkillSounds[5]);
+	Owner->ADComp->Play();
 
 	Owner->Attack_Normal_Garen(); // 임시
 

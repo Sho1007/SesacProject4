@@ -36,7 +36,9 @@ void ULoginWidget::NativeConstruct()
 	// 规 父甸扁
 	btn_CreateGameRoom->OnClicked.AddDynamic(this, &ULoginWidget::CreateGameRoom);
 
+	/*
 	Slider_PlayerNumber->OnValueChanged.AddDynamic(this, &ULoginWidget::OnValueChanged);
+	*/
 
 	// Find Room --------------------------------------------------------
 
@@ -91,26 +93,29 @@ void ULoginWidget::CreateGameRoom()
 	if (GI && edit_RoomName->GetText().IsEmpty() == false) {
 		// 规力格
 		FString roomName = edit_RoomName->GetText().ToString();
+		
+		/*
 		// 规 牢盔荐
 		int32 playerCount = Slider_PlayerNumber->GetValue();
-		
+		*/
+
 		// 厚剐锅龋
 		//FString roomName = edit_Password->GetText().ToString();
 
 		// 技记 积己
-		GI->CreateGameSession(roomName, playerCount);
+		GI->CreateGameSession(roomName/*, playerCount*/);
 	}
 
 }
 
-
+/*
 void ULoginWidget::OnValueChanged(float value)
 {
 	// Player
 	txt_PlayerCount->SetText(FText::AsNumber(value));
 
 }
-
+*/
 
 void ULoginWidget::BackToMain()
 {

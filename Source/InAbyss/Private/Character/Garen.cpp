@@ -13,6 +13,9 @@
 #include "Building/Building_Base.h"
 #include "AnimInstance/GarenAnimInstance.h"
 #include "NiagaraComponent.h"
+#include <Components/AudioComponent.h>
+#include "Component/GarenFSMComponent.h"
+#include "Component/GarenSkillComponent.h"
 
 
 // Sets default values
@@ -20,6 +23,11 @@ AGaren::AGaren()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+
+	FSMComponent = CreateDefaultSubobject<UGarenFSMComponent>(TEXT("FSMComponent"));
+
+	SkillComponent = CreateDefaultSubobject<UGarenSkillComponent>(TEXT("SkillComponent"));
 
 	// 상태 컴포넌트
 	StateComp_Garen = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComp_Garen"));
@@ -45,6 +53,11 @@ AGaren::AGaren()
 	NSComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NSComp"));
 	NSComp->SetupAttachment(RootComponent);
 	NSComp->SetRelativeScale3D(FVector(1));
+
+	// 오디오 컴포넌트
+	ADComp = CreateDefaultSubobject<UAudioComponent>(TEXT("ADComp"));
+	ADComp->SetupAttachment(RootComponent);
+
 
 }
 
@@ -80,6 +93,8 @@ void AGaren::BeginPlay()
 		HealthBarWidget->InitStateComponent(StateComponent);
 	}
 	*/
+
+	
 }
 
 // Called every frame
@@ -108,28 +123,7 @@ void AGaren::Tick(float DeltaTime)
 		}
 
 		// 지정된 타겟이 있을 경우, 거리 안에 들어오면 Attack으로 전환
-		if (Target_Minion && GarenState != EGarenState::ATTACK) {
-			//오차범위 이내이면 상태를 ATTACK로 전환
-			if (FVector::Dist(this->GetActorLocation(), Target_Minion->GetActorLocation()) <= 250) {
-
-				GarenState = EGarenState::ATTACK;
-			}
-
-		}
-		else if (Target_Champion) {
-			//오차범위 10 이내이면 상태를 ATTACK로 전환
-			if (FVector::Dist(this->GetActorLocation(), Target_Champion->GetActorLocation()) <= 250) {
-				GarenState = EGarenState::ATTACK;
-			}
-
-		}
-		else if (Target_Building) {
-			//오차범위 10 이내이면 상태를 ATTACK로 전환
-			if (FVector::Dist(this->GetActorLocation(), Target_Building->GetActorLocation()) <= 400) {
-				GarenState = EGarenState::ATTACK;
-			}
-
-		}
+		ChangeState_Attack();
 
 		break;
 	case EGarenState::ATTACK:
@@ -262,6 +256,32 @@ EGarenState AGaren::GetGarenState() const
 	return EGarenState();
 }
 
+void AGaren::ChangeState_Attack()
+{
+	if (Target_Minion && GarenState != EGarenState::ATTACK) {
+		//오차범위 이내이면 상태를 ATTACK로 전환
+		if (FVector::Dist(this->GetActorLocation(), Target_Minion->GetActorLocation()) <= 250) {
+
+			GarenState = EGarenState::ATTACK;
+		}
+
+	}
+	else if (Target_Champion) {
+		//오차범위 10 이내이면 상태를 ATTACK로 전환
+		if (FVector::Dist(this->GetActorLocation(), Target_Champion->GetActorLocation()) <= 250) {
+			GarenState = EGarenState::ATTACK;
+		}
+
+	}
+	else if (Target_Building) {
+		//오차범위 10 이내이면 상태를 ATTACK로 전환
+		if (FVector::Dist(this->GetActorLocation(), Target_Building->GetActorLocation()) <= 400) {
+			GarenState = EGarenState::ATTACK;
+		}
+
+	}
+}
+
 void AGaren::MouseRightClick(const FInputActionValue& value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Mouse_Right"));
@@ -320,24 +340,15 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 	if (MouseHitActor && MouseHitActor->GetComponentByClass<UStateComponentBase>()) {
 
 		// 저장된 액터의 스테이트 컴포넌트를 저장
-		UStateComponentBase* StateComponentBase = MouseHitActor->GetComponentByClass<UStateComponentBase>();
+		StateComponentBase = MouseHitActor->GetComponentByClass<UStateComponentBase>();
 
 		// 만약 같은 팀이 아니고, 죽은 상태가 아니라면
 		if (StateComponentBase && StateComponentBase->GetFactionType() != StateComp_Garen->GetFactionType() && StateComponentBase->IsDead() == false) {
 
 			// 각 액터의 종류에 따라 변수 저장
-			if (StateComponentBase->GetObjectType() == EObjectType::MINION || StateComponentBase->GetObjectType() == EObjectType::SUPERMINION) {
-				Target_Minion = Cast<AMinionBase>(MouseHitActor); // 공격대상이 미니언이라면
-
-			}
-			else if (StateComponentBase->GetObjectType() == EObjectType::CHAMPION) {
-				Target_Champion = Cast<ACharacter>(MouseHitActor); // 공격대상이 챔피언이라면
-
-			}
-			else if (StateComponentBase->GetObjectType() == EObjectType::BUILDING) {
-				Target_Building = Cast<ABuilding_Base>(MouseHitActor); // 공격대상이 타워라면
-
-			}
+			
+			SetTarget();
+			
 
 			/*
 			// 로그 - 임시
@@ -402,6 +413,9 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 
 	Speed = Speed * 1.3;
 
+	ADComp->SetSound(GR_SkillSounds[0]);
+	ADComp->Play();
+
 	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
 
 }
@@ -418,8 +432,10 @@ void AGaren::KeyBoard_W(const FInputActionValue& value)
 		NSComp->Activate();
 	}
 
-	// 현재 3초 뒤 자동으로 비활성화 되도록 설정되어 있음
-	//NSComp->Deactivate();
+	ADComp->SetSound(GR_SkillSounds[2]);
+	ADComp->Play();
+
+	
 }
 
 void AGaren::KeyBoard_E(const FInputActionValue& value)
@@ -544,6 +560,23 @@ void AGaren::Attack_Normal_Garen()
 	}
 }
 
+void AGaren::SetTarget()
+{
+	if (StateComponentBase->GetObjectType() == EObjectType::MINION || StateComponentBase->GetObjectType() == EObjectType::SUPERMINION) {
+		Target_Minion = Cast<AMinionBase>(MouseHitActor); // 공격대상이 미니언이라면
+
+	}
+	else if (StateComponentBase->GetObjectType() == EObjectType::CHAMPION) {
+		Target_Champion = Cast<ACharacter>(MouseHitActor); // 공격대상이 챔피언이라면
+
+	}
+	else if (StateComponentBase->GetObjectType() == EObjectType::BUILDING) {
+		Target_Building = Cast<ABuilding_Base>(MouseHitActor); // 공격대상이 타워라면
+
+	}
+
+}
+
 void AGaren::Q_Skill_Garen()
 {
 
@@ -601,7 +634,7 @@ void AGaren::R_Skill_Garen()
 		}
 
 		// 저장된 액터의 스테이트 컴포넌트를 저장
-		UStateComponentBase* StateComponentBase = HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>();
+		StateComponentBase = HitInfo.GetActor()->GetComponentByClass<UStateComponentBase>();
 
 		// 클릭한 대상이 챔피언이라면 타겟으로 저장
 		if (StateComponentBase->GetObjectType() == EObjectType::CHAMPION) {
@@ -635,11 +668,6 @@ void AGaren::R_Skill_Garen()
 	}
 }
 
-void AGaren::R_Move()
-{
-
-}
-
 void AGaren::Damaged()
 {
 	// 피격시 가렌의 체력이 남아있을 때
@@ -652,6 +680,9 @@ void AGaren::Die()
 	// 피격시 가렌의 체력이 0이하 일 때
 	//GarenAnim->PlayANM_Dead();
 	GarenState = EGarenState::DEAD;
+
+	ADComp->SetSound(GR_Sounds[2]);
+	ADComp->Play();
 
 	// 죽고 나서 죽은 상태로 애니메이션을 고정하도록 해야 함
 

@@ -47,6 +47,13 @@ public:	// Mapping
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* IMC;
 
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	class UGarenFSMComponent* FSMComponent;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	class UGarenSkillComponent* SkillComponent;
+	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
+	class UStateComponentBase* StateComponentBase;
+
 public: // InputAction
 	// 마우스 우클릭
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -82,6 +89,8 @@ public: // 가렌 행동 상태
 	UPROPERTY(EditAnywhere)
 	EGarenState GarenState;
 
+	void ChangeState_Attack();
+
 public: // 컴포넌트
 	 
 	// 상태 컴포넌트
@@ -109,6 +118,14 @@ public: // 컴포넌트
 	// UI 위젯 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UWidgetComponent* HPBarComp;
+
+	// 오디오 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UAudioComponent* ADComp;
+
+	// 오디오 보이스 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UAudioComponent* VoiceComp;
 
 public:	// 키 입력 함수
 	// 마우스 오른쪽 입력
@@ -164,22 +181,19 @@ public: // 일반 공격기능
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	float DetectDistance = 100.f;
 
-	void SettingTarget();
-
-
+	void SetTarget();
 
 public: // 스킬 기능
+	UFUNCTION()
 	void Q_Skill_Garen();
+	UFUNCTION()
 	void W_Skill_Garen();
+	UFUNCTION()
 	void E_Skill_Garen();
+	UFUNCTION()
 	void R_Skill_Garen();
-	void PassiveSkill_Garen();
-
-	void R_Move();
+	
 	bool bIs_R_Move = false;
-
-public: // 카메라 이동
-	void CameraHold_Garen();
 
 public: // 애니메이션
 	UPROPERTY()
@@ -190,6 +204,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Niagara", meta = (AllowPrivateAccess = "true"))
 	TArray<class UNiagaraSystem*> SkillEffect;
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+	TArray<class USoundBase*> GR_Sounds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+	TArray<class USoundBase*> GR_SkillSounds;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+	TArray<class USoundBase*> GR_SkillVoice;
 
 public: // 인터페이스 가상함수 상속 부분
 		virtual void Damaged() override;
