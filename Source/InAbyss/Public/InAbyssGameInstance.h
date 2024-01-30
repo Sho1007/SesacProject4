@@ -56,9 +56,14 @@ public:
 	// 세션(호스트)이름
 	FString MySessionName = "InAbyss";
 
+	class ATempInGamePlayerController* PC;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
 public: // 세션 생성 기능
 	// 게임 방 만드는 기능
-	void CreateGameSession(const FString roomName, const int32 playerCount);
+	void CreateGameSession(const FString roomName/*, const int32 playerCount*/);
 
 	// 방 생성 완료시 콜백
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
@@ -86,4 +91,10 @@ public:	// 세션 입장 기능
 	// 세션 입장시 콜백
 	void OnJoinSessionCompleted(FName sessionName, EOnJoinSessionCompleteResult::Type result);
 
+public:
+	UPROPERTY(Replicated)
+	int32 ReadyPlayer = 0;
+
+	UFUNCTION()
+	void AddReadyPlayer();
 };

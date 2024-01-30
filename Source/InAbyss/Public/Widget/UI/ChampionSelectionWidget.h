@@ -17,18 +17,26 @@ class INABYSS_API UChampionSelectionWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
+	virtual bool Initialize() override;
+
 	UPROPERTY()
 	class UInAbyssGameInstance* GI;
 
 	UPROPERTY()
-	class ALoginGameMode* gm;
+	class ALoginGameMode* GM;
+
+	UPROPERTY()
+	class ATempInGamePlayerController* PC;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget), ReplicatedUsing = OnRep_UpdatePlayerName1)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget), Replicated)
 	class UTextBlock* txt_PlayerName1;
 
 	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget), Replicated)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget), ReplicatedUsing = OnRep_UpdatePlayerName2)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget), Replicated)
 	class UTextBlock* txt_PlayerName2;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget))
@@ -70,14 +78,9 @@ public: // 기능
 	UFUNCTION()
 	void SetChampion(int32 ChampionIndex);
 
-	/*
-	UFUNCTION(Server, Reliable)
-	void ServerRPCSetChampion(int32 ChampionIndex);
-	
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiRPCSetChampion(int32 ChampionIndex);
-	*/
+	bool SelectChampion = false;
 
+	void UseStartbtn();
 
 
 
@@ -92,33 +95,4 @@ public:
 	bool bIsServer = false;
 
 
-public:
-	UFUNCTION(Server, Reliable)
-	void ServerRPCSetHostPlayerName();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiRPCSetHostPlayerName(const FText& PlayerName);
-
-	UFUNCTION(Server, Reliable)
-	void ServerRPCSetGuestPlayerName();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiRPCSetGuestPlayerName(const FText& PlayerName);
-
-
-
-
-
-	UFUNCTION(Server, Reliable)
-	void ServerRPCOpenGameLevel();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiRPCOpenGameLevel(const FText& PlayerName);
-
-public: // OnRep
-	UFUNCTION()
-	void OnRep_UpdatePlayerName1(); // 플레이어 1 텍스트 업데이트
-
-	UFUNCTION()
-	void OnRep_UpdatePlayerName2(); // 플레이어 2 텍스트 업데이트
 };
