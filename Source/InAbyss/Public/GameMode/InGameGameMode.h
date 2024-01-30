@@ -9,8 +9,22 @@
 /**
  * 
  */
+class APlayerStart;
 UCLASS()
 class INABYSS_API AInGameGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	virtual void BeginPlay() override;
+	void SpawnChampoin(APlayerState* PlayerState);
+
+private:
+	UPROPERTY(EditDefaultsOnly,  Meta = (AllowPrivateAccess))
+	TMap<FString, TSubclassOf<ACharacter>> ChampionClassMap;
+
+	UPROPERTY(VisibleInstanceOnly,  Meta = (AllowPrivateAccess))
+	APlayerStart* BlueTeamStart;
+	UPROPERTY(VisibleInstanceOnly,  Meta = (AllowPrivateAccess))
+	APlayerStart* RedTeamStart;
 };

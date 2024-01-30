@@ -7,21 +7,21 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "InAbyssGameInstance.generated.h"
 
-// ¹æÁ¤º¸(¼¼¼Ç) ±â·ÏÇÒ ±¸Á¶Ã¼
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼
 USTRUCT(BlueprintType)
 struct FSessionInfo
 {
 	GENERATED_BODY()
-	// ¹æ ÀÌ¸§
+	// ï¿½ï¿½ ï¿½Ì¸ï¿½
 	UPROPERTY(BlueprintReadOnly)
 	FString roomName;
-	// ¹æ ÁÖÀÎ ÀÌ¸§
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½
 	UPROPERTY(BlueprintReadOnly)
 	FString hostName;
-	// ¹æ¿¡ ÀÖ´Â ÇÃ·¹ÀÌ¾î ¼ö
+	// ï¿½æ¿¡ ï¿½Ö´ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½
 	UPROPERTY(BlueprintReadOnly)
 	FString playerCount;
-	// SessionÀÇ index
+	// Sessionï¿½ï¿½ index
 	UPROPERTY(BlueprintReadOnly)
 	int32 index;
 
@@ -32,10 +32,10 @@ struct FSessionInfo
 
 };
 
-// ¼¼¼Ç °Ë»öÀÌ ³¡³ª¸é È£ÃâµÉ µ¨¸®°ÔÀÌÆ®
+// ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSearchSignature, const FSessionInfo&, sessionInfo);
 
-// ¼¼¼Ç °Ë»ö »óÅÂ ÁßÀÏ ¶§ È£ÃâµÉ µ¨¸®°ÔÀÌÆ®
+// ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSearchStateSignature, bool, bIsSearching);
 
 /**
@@ -47,13 +47,13 @@ class INABYSS_API UInAbyssGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
-	// ÀÎ½ºÅÏ½º ÃÊ±âÈ­ ÇÏ´Â ±â´É
+	// ï¿½Î½ï¿½ï¿½Ï½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
 	virtual void Init() override;
 
-	// ¼¼¼Ç ¼³Á¤
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	IOnlineSessionPtr SessionInterface;
 
-	// ¼¼¼Ç(È£½ºÆ®)ÀÌ¸§
+	// ï¿½ï¿½ï¿½ï¿½(È£ï¿½ï¿½Æ®)ï¿½Ì¸ï¿½
 	FString MySessionName = "InAbyss";
 
 	class ATempInGamePlayerController* PC;
@@ -61,36 +61,37 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
-public: // ¼¼¼Ç »ý¼º ±â´É
-	// °ÔÀÓ ¹æ ¸¸µå´Â ±â´É
+public: // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	void CreateGameSession(const FString roomName/*, const int32 playerCount*/);
 
-	// ¹æ »ý¼º ¿Ï·á½Ã ÄÝ¹é
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½Ý¹ï¿½
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 
 	void SetPlayerChampion(FName PlayerSessionName, FString ChampionName);
 	void SetPlayerName(APlayerState* PlayerState);
+	FString GetPlayerChampion(FName PlayerName);
 public:
-	// °Ë»ö Á¶°Çµé
+	// ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½Çµï¿½
 	TSharedPtr<FOnlineSessionSearch > SessionSearch;
 
-	// ¼¼¼Ç °Ë»ö ±â´É 
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ 
 	void FindGameSessions();
 
-	// ¼¼¼Ç°Ë»ö ¿Ï·á½Ã ÄÝ¹é
+	// ï¿½ï¿½ï¿½Ç°Ë»ï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½Ý¹ï¿½
 	void OnFindSessionComplete(bool bWasSuccessful);
 
-	// ¹æÃ£±â ¿Ï·á ÄÝ¹é µ¨¸®°ÔÀÌÆ®
+	// ï¿½ï¿½Ã£ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½Ý¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	FSearchSignature onSearchCompleted;
 
-	// ¹æ Ã£´Â Áß¿¡ ÄÝ¹é µ¨¸®°ÔÀÌÆ®
+	// ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ß¿ï¿½ ï¿½Ý¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	FSearchStateSignature onSearchState;
 
-public:	// ¼¼¼Ç ÀÔÀå ±â´É
-	// ¼¼¼Ç(¹æ) ÀÔÀå ±â´É
+public:	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	void JoinSelectedSession(int32 roomIndex);
 
-	// ¼¼¼Ç ÀÔÀå½Ã ÄÝ¹é
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¹ï¿½
 	void OnJoinSessionCompleted(FName sessionName, EOnJoinSessionCompleteResult::Type result);
 
 public:

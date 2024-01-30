@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class INABYSS_API ATempInGameGameMode : public AInGameGameMode
+class INABYSS_API ATempInGameGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	

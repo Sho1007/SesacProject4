@@ -19,12 +19,12 @@ void UChampionSelectionWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	
-	// √®««æ º±≈√
+	// Ï±îÌîºÏñ∏ ÏÑ†ÌÉù
 	btn_Champ1->OnClicked.AddDynamic(this, &UChampionSelectionWidget::SetChampion1);
 	btn_Champ2->OnClicked.AddDynamic(this, &UChampionSelectionWidget::SetChampion2);
 	btn_Champ3->OnClicked.AddDynamic(this, &UChampionSelectionWidget::SetChampion3);
 
-	// ∞‘¿” Ω√¿€ - ¥Ÿ¿Ω ∑π∫ß ø¿«¬
+	// Í≤åÏûÑ ÏãúÏûë - Îã§Ïùå Î†àÎ≤® Ïò§Ìîà
 	btn_Selection->OnClicked.AddDynamic(this, &UChampionSelectionWidget::OpenGameLevel);
 
 	
@@ -36,10 +36,10 @@ void UChampionSelectionWidget::NativeConstruct()
 
 	}
 
-	if (bIsServer == true) { // º≠πˆ∂Û∏È
+	if (bIsServer == true) { // ÏÑúÎ≤ÑÎùºÎ©¥
 		SetHostPlayerName();
 	}
-	else if (bIsServer == false) { // ≈¨∂Û¿Ã≈œ∆Æ∂Û∏È
+	else if (bIsServer == false) { // ÌÅ¥ÎùºÏù¥ÌÑ¥Ìä∏ÎùºÎ©¥
 		SetGuestPlayerName();
 		btn_Selection->SetVisibility(ESlateVisibility::Hidden);
 	}
@@ -50,7 +50,7 @@ bool UChampionSelectionWidget::Initialize()
 {
 	if (Super::Initialize() == false) return false;
 
-	// ∞‘¿” ¿ŒΩ∫≈œΩ∫
+	// Í≤åÏûÑ Ïù∏Ïä§ÌÑ¥Ïä§
 	GI = Cast<UInAbyssGameInstance>(GetWorld()->GetGameInstance());
 	GM = Cast<ALoginGameMode>(GetWorld()->GetAuthGameMode());
 	
@@ -60,11 +60,11 @@ bool UChampionSelectionWidget::Initialize()
 	return true;
 }
 
-void UChampionSelectionWidget::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // ∫Øºˆ µø±‚»≠ √≥∏Æ
+void UChampionSelectionWidget::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // Î≥ÄÏàò ÎèôÍ∏∞Ìôî Ï≤òÎ¶¨
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// µø±‚»≠«“ ∫Øºˆ µÓ∑œ
+	// ÎèôÍ∏∞ÌôîÌï† Î≥ÄÏàò Îì±Î°ù
 	DOREPLIFETIME(UChampionSelectionWidget, txt_PlayerName1);
 	DOREPLIFETIME(UChampionSelectionWidget, txt_PlayerName2);
 	DOREPLIFETIME(UChampionSelectionWidget, SelectedChampionIndex);
@@ -115,7 +115,7 @@ void UChampionSelectionWidget::SetChampion(int32 ChampionIndex)
 	
 	FString ChampionName;
 
-	// ¿Œµ¶Ω∫ø° µ˚∂Û º±≈√µ» √®««æ¿ª ∞·¡§
+	// Ïù∏Îç±Ïä§Ïóê Îî∞Îùº ÏÑ†ÌÉùÎêú Ï±îÌîºÏñ∏ÏùÑ Í≤∞Ï†ï
 	switch (ChampionIndex)
 	{
 	case 1:
@@ -133,7 +133,7 @@ void UChampionSelectionWidget::SetChampion(int32 ChampionIndex)
 	}
 
 
-	// º±≈√µ» √®««æ¿« ¿Ã∏ß¿ª ≈ÿΩ∫∆Æ ∫Ì∑œø° «•Ω√
+	// ÏÑ†ÌÉùÎêú Ï±îÌîºÏñ∏Ïùò Ïù¥Î¶ÑÏùÑ ÌÖçÏä§Ìä∏ Î∏îÎ°ùÏóê ÌëúÏãú
 	FText ChampionText = FText::FromString(ChampionName);
 	txt_Champion->SetText(ChampionText);
 
@@ -171,9 +171,9 @@ void UChampionSelectionWidget::OpenGameLevel()
 		return;
 	}
 
-	// ¿Ãµø«“ ∑π∫ß ¡ˆ¡§
-	FString NextLevelName = TEXT("L_Laboratory"); // KHSMap // L_Laboratory // NewWorld_JSH
+	// Ïù¥ÎèôÌï† Î†àÎ≤® ÏßÄÏ†ï
+	FString NextLevelName = TEXT("L_InGame_OSH"); // KHSMap // L_Laboratory // NewWorld_JSH
 
-	// ∑π∫ß¿ª ¿ÃµøΩ√≈¥
+	// Î†àÎ≤®ÏùÑ Ïù¥ÎèôÏãúÌÇ¥
 	GetWorld()->ServerTravel(*NextLevelName);
 }
