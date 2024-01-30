@@ -31,6 +31,11 @@ public:
 	class UChampionSelectionWidget* ChampionSelectionWidget;
 
 public:
+	 
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SetPlayerChampion(const FString& NewPlayerChampion);
+
+
 	UFUNCTION()
 	void CallPlayerNum();
 
@@ -41,7 +46,7 @@ public:
 	void MultiRPCallPlayerNum(int Num);
 
 	UFUNCTION(Client, Reliable)
-	void ClientRPCCallPlayerNum();
+	void ClientRPCCallPlayerNum(int Num);
 
 	void ActivateStartButton();
 
@@ -49,7 +54,9 @@ public:
 	TSubclassOf<UChampionSelectionWidget> ChampionSelectionWidgetClass;
 
 public:
+	//UPROPERTY(ReplicatedUsing=OnRep_ReadyNum)
 	UPROPERTY(Replicated)
 	int32 ReadyNum = 0;
-
+	UFUNCTION()
+	void OnRep_ReadyNum();
 };

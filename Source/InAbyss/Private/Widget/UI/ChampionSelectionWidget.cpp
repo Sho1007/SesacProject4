@@ -3,12 +3,15 @@
 
 #include "Widget/UI/ChampionSelectionWidget.h"
 #include "InAbyssGameInstance.h"
+#include <GameFramework/PlayerState.h>
+#include <GameFramework/PlayerController.h>
 #include <Components/TextBlock.h>
 #include <Components/Button.h>
 #include <Kismet/GameplayStatics.h>
 #include "GameMode/LoginGameMode.h"
 #include <Net/UnrealNetwork.h>
 #include "TestTemp/TempInGamePlayerController.h"
+#include <InAbyss/InAbyss.h>
 
 
 void UChampionSelectionWidget::NativeConstruct()
@@ -139,9 +142,21 @@ void UChampionSelectionWidget::SetChampion(int32 ChampionIndex)
 
 
 	Cast<ATempInGamePlayerController>(GetOwningPlayer())->CallPlayerNum();
+	Cast<ATempInGamePlayerController>(GetOwningPlayer())->ServerRPC_SetPlayerChampion(ChampionName);
 
-	
-	UE_LOG(LogTemp, Warning, TEXT("====================End===================="));
+
+	// PRINTLOG(TEXT("PlayerName : %s"), *GetOwningPlayer()->GetPlayerState()->GetPlayerName());
+	UE_LOG(LogTemp, Warning, TEXT("UChampionSelectionWidget::SetChampion) PlayerName : %s"), *GetOwningPlayer()->GetPlayerState<APlayerState>()->GetPlayerName());
+
+	//
+
+
+
+
+	//UE_LOG(LogTemp, Warning, TEXT("====================End===================="));
+
+	// 
+
 }
 
 void UChampionSelectionWidget::UseStartbtn()
@@ -157,10 +172,8 @@ void UChampionSelectionWidget::OpenGameLevel()
 	}
 
 	// 이동할 레벨 지정
-	FString NextLevelName = TEXT("NewWorld_JSH"); // KHSMap
+	FString NextLevelName = TEXT("L_Laboratory"); // KHSMap // L_Laboratory // NewWorld_JSH
 
 	// 레벨을 이동시킴
 	GetWorld()->ServerTravel(*NextLevelName);
-
-
 }
