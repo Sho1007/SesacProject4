@@ -6,7 +6,6 @@
 #include "Character/CharacterBase.h"
 #include "Ezreal.generated.h"
 
-class USkillComponent;
 class UFSMComponent;
 class UStateComponentBase;
 class UCameraComponent;
@@ -15,7 +14,9 @@ struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 class UEzrealAnimInstance;
+class USkillComponent;
 /**
+ 
  * 
  */
 

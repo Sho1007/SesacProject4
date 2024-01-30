@@ -426,9 +426,7 @@ void AMinionBase::Activate()
 
 void AMinionBase::Deactivate()
 {
-	PRINTLOG(TEXT("Begin"));
-	bIsActivated = false;
-	SetActorTickEnabled(false);
+	if (HasAuthority() == false) return;
 	MultiRPC_Deactivate();
 }
 

@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "FSMComponent.generated.h"
 
+class USkillComponent;
 class UChampionAnimInstance;
 class UNiagaraSystem;
 class UStateComponentBase;
@@ -50,6 +51,7 @@ public:
 	// Rotate
 	bool Rotate(float DeltaTime);
 	bool RotateToTarget(float DeltaTime);
+	bool RotateToSkillPoint(float DeltaTime);
 
 	// Input
 	UFUNCTION()
@@ -74,6 +76,16 @@ public:
 	// Attack
 
 	void EndAttack();
+
+	// Skill
+
+	void EndSkill();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_EndSKill();
+
+	void PrepareSkill();
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SetSkillPoint(FVector NewSkillPoint);
 	
 	// UFUNCTION(Server, Reliable)
 	// void ServerRPC_RightClickStarted(FVector NewWorldOrigin, FVector NewWorldDirection);
@@ -86,6 +98,8 @@ public:
 	// OnRep
 	UFUNCTION()
 	void OnRep_Destination();
+	UFUNCTION()
+	void OnRep_SkillPoint();
 	UFUNCTION()
 	void OnRep_Target();
 	UFUNCTION()
@@ -110,6 +124,8 @@ private:
 	// State
 	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
 	EChampionState ChampionState = EChampionState::IDLE;
+	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
+	EChampionState BeforeState = EChampionState::IDLE;
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_Target, Meta = (AllowPrivateAccess))
 	AActor* Target = nullptr;
 	UStateComponentBase* TargetStateComponent;
@@ -119,6 +135,8 @@ private:
 	// Component
 	UPROPERTY(Meta = (AllowPrivateAccess))
 	UStateComponentBase* StateComponent;
+	UPROPERTY(Meta = (AllowPrivateAccess))
+	USkillComponent* SkillComponent;
 	
 	// Input
 	UPROPERTY(EditDefaultsOnly, Category = "Input", Meta = (AllowPrivateAccess))
@@ -127,11 +145,16 @@ private:
 	// Rotation
 	FRotator FromRotation;
 	FRotator ToRotation;
+	FRotator SkillRotation;
 	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
 	float RotationSpeed = 20.f;
 	UPROPERTY(EditAnywhere, Meta = (AllowPrivateAccess))
 	float RotationTime = 0.f;
 	float CurrentRotationTime = 0.f;
+
+	// Skill
+	UPROPERTY(ReplicatedUsing = "OnRep_SkillPoint", Meta = (AllowPrivateAccess))
+	FVector SkillPoint;
 
 	// Move
 	UPROPERTY(ReplicatedUsing = "OnRep_Destination", Meta = (AllowPrivateAccess))

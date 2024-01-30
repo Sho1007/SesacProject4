@@ -4,15 +4,13 @@
 #include "Component/FSMComponent.h"
 
 #include <EnhancedInputComponent.h>
-#include <Kismet/GameplayStatics.h>
 #include <NiagaraFunctionLibrary.h>
 #include <Net/UnrealNetwork.h>
-
+#include "Component/SkillComponent.h"
 #include "AnimInstance/ChampionAnimInstance.h"
 #include "Character/Ezreal.h" 
 #include "Component/StateComponentBase.h"
 #include "InAbyss/InAbyss.h"
-#include "Runtime/Experimental/Chaos/Private/Chaos/CollisionOneShotManifolds.h"
 
 // Sets default values for this component's properties
 UFSMComponent::UFSMComponent()
@@ -27,6 +25,7 @@ void UFSMComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UFSMComponent, Destination);
+	DOREPLIFETIME(UFSMComponent, SkillPoint);
 	DOREPLIFETIME(UFSMComponent, Target);
 	DOREPLIFETIME(UFSMComponent, bIsAttacking);
 }
@@ -50,6 +49,7 @@ void UFSMComponent::BeginPlay()
 
 	// Find Other Component
 	StateComponent = Owner->GetComponentByClass<UStateComponentBase>();
+	SkillComponent = Owner->GetComponentByClass<USkillComponent>();
 
 	if (Owner->IsLocallyControlled())
 	{
@@ -120,7 +120,9 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	}
 
 	// ...
-
+	
+	FString DebugString;
+    	DebugString += "\n" + UEnum::GetValueAsString(ChampionState);
 	
 	switch (ChampionState)
 	{
@@ -166,6 +168,8 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 					EndAttack();
 					MultiRPC_StopMontage();
 				}
+
+				DebugString += "1\n";
 				
 				RotateToTarget(DeltaTime);
 				TargetDirection.Normalize();
@@ -175,6 +179,7 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 			{
 				if (RotateToTarget(DeltaTime) && Owner->IsLocallyControlled())
 				{
+					DebugString += "2\n";
 					ServerRPC_PlayAttackAnim();
 				}
 				// 
@@ -187,7 +192,21 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 			}
 		}
 		break;
+
+	case EChampionState::SKILL:
+		{
+			if (SkillComponent->IsSkilling()) return;
+			if (RotateToSkillPoint(DeltaTime) && Owner->IsLocallyControlled())
+			{
+				SkillComponent->Q();
+			}
+		}
+		break;
 	}
+
+	
+	DrawDebugString(GetWorld(), FVector::ZeroVector, DebugString,
+		Owner, FColor::Yellow, 0.01f);
 }
 
 void UFSMComponent::SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInputComponent)
@@ -215,6 +234,15 @@ bool UFSMComponent::RotateToTarget(float DeltaTime)
 	return Rotate(DeltaTime);
 }
 
+bool UFSMComponent::RotateToSkillPoint(float DeltaTime)
+{
+	CurrentRotationTime += DeltaTime;
+
+	Owner->SetActorRotation(FMath::RInterpTo(Owner->GetActorRotation(), SkillRotation, CurrentRotationTime, RotationSpeed));
+	
+	return SkillRotation.Equals(Owner->GetActorRotation());
+}
+
 void UFSMComponent::RightClickStarted(const FInputActionValue& Value)
 {
 	if (CursoredTarget != nullptr)
@@ -239,8 +267,11 @@ void UFSMComponent::ServerRPC_SetDestination_Implementation(FVector NewDestinati
 	Target = nullptr;
 	OnRep_Destination();
 	bIsAttacking = false;
-	MultiRPC_StopMontage();
-	
+	if (SkillComponent->IsSkilling() == false)
+	{
+		MultiRPC_StopMontage();
+	}
+	// Todo : Skill 시 캔슬
 }
 
 void UFSMComponent::ServerRPC_SetTarget_Implementation(AActor* NewTarget)
@@ -284,6 +315,29 @@ void UFSMComponent::EndAttack()
 	OnRep_IsAttacking();
 }
 
+void UFSMComponent::EndSkill()
+{
+	MultiRPC_EndSKill();
+}
+
+void UFSMComponent::MultiRPC_EndSKill_Implementation()
+{
+	ChampionState = BeforeState;
+}
+
+void UFSMComponent::PrepareSkill()
+{
+	ServerRPC_SetSkillPoint(CursoredLocation);
+	SkillPoint = CursoredLocation; 
+	OnRep_SkillPoint();
+}
+
+void UFSMComponent::ServerRPC_SetSkillPoint_Implementation(FVector NewSkillPoint)
+{
+	SkillPoint = NewSkillPoint;
+	OnRep_SkillPoint();
+}
+
 EChampionState UFSMComponent::GetChampionState() const
 {
 	return ChampionState;
@@ -297,7 +351,29 @@ void UFSMComponent::OnRep_Destination()
 	CurrentRotationTime = 0.f;
 	FromRotation = CurrentOwner->GetActorRotation();
 	ToRotation =  FRotationMatrix::MakeFromX((Destination - CurrentOwner->GetActorLocation()).GetSafeNormal()).Rotator();
-	ChampionState = EChampionState::MOVE;
+	if (SkillComponent->IsSkilling() == false)
+	{
+		ChampionState = EChampionState::MOVE;
+	}
+	else
+	{
+		BeforeState = EChampionState::MOVE;
+	}
+	
+}
+
+void UFSMComponent::OnRep_SkillPoint()
+{
+	ACharacter* CurrentOwner = Cast<ACharacter>(GetOwner());
+	
+	SkillPoint.Z = CurrentOwner->GetActorLocation().Z;
+	CurrentRotationTime = 0.f;
+	SkillRotation =  FRotationMatrix::MakeFromX((SkillPoint - CurrentOwner->GetActorLocation()).GetSafeNormal()).Rotator();
+	if (ChampionState != EChampionState::SKILL)
+	{
+		BeforeState = ChampionState;
+	}
+	ChampionState = EChampionState::SKILL;
 }
 
 void UFSMComponent::OnRep_Target()
@@ -308,7 +384,14 @@ void UFSMComponent::OnRep_Target()
 	ACharacter* CurrentOwner = Cast<ACharacter>(GetOwner());
 	TargetStateComponent = Target->GetComponentByClass<UStateComponentBase>();
 
-	ChampionState = EChampionState::ATTACK;
+	if (SkillComponent->IsSkilling() == false)
+	{
+		ChampionState = EChampionState::ATTACK;
+	}
+	else
+	{
+		BeforeState = EChampionState::ATTACK;
+	}
 }
 
 void UFSMComponent::OnRep_IsAttacking()

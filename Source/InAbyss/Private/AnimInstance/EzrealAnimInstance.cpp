@@ -2,3 +2,14 @@
 
 
 #include "AnimInstance/EzrealAnimInstance.h"
+
+#include "Component/SkillComponent.h"
+#include "GameFramework/Character.h"
+
+void UEzrealAnimInstance::AnimNotify_Q()
+{
+	if (Owner->HasAuthority() == false) return;
+	Super::AnimNotify_Q();
+
+	SkillComponent->FireQ();
+}

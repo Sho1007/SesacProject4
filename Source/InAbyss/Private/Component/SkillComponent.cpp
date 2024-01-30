@@ -8,6 +8,8 @@
 #include "GameFramework/Character.h"
 
 #include "Component/FSMComponent.h" 
+#include "InAbyss/InAbyss.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 USkillComponent::USkillComponent()
@@ -26,25 +28,43 @@ void USkillComponent::SetupPlayerInputComponent(UEnhancedInputComponent* Enhance
 
 void USkillComponent::QStarted(const FInputActionValue& Value)
 {
+	PRINTLOG(TEXT(""));
 	// Destination = GetActorLocation();
-	if (GetOwner()->HasAuthority())
-	{
-		// OnRep_Destination();
-		ServerRPC_Q_Implementation();
-	}
-	else
-	{
-		ServerRPC_Q();
-	}
+	FSMComponent->PrepareSkill();
+}
+
+void USkillComponent::Q()
+{
+	bIsSkilling = true;
+	ServerRPC_Q();
+}
+
+void USkillComponent::FireQ()
+{
 }
 
 void USkillComponent::ServerRPC_Q_Implementation()
 {
+	PRINTLOG(TEXT(""));
+	bIsSkilling = true;
 	MultiRPC_Q();
 }
 
 void USkillComponent::MultiRPC_Q_Implementation()
 {
+	AnimInstance->PlayQMontage();
+}
+
+void USkillComponent::ServerRPC_EndSkill_Implementation()
+{
+	bIsSkilling = false;
+	OnRep_IsSkilling();
+	FSMComponent->EndSkill();
+}
+
+void USkillComponent::OnRep_IsSkilling()
+{
+	PRINTLOG(TEXT("%d"), bIsSkilling);
 }
 
 // Called when the game starts
@@ -56,10 +76,14 @@ void USkillComponent::BeginPlay()
 
 	// AnimInstance Init
 	AnimInstance = Cast<UEzrealAnimInstance>(GetOwner<ACharacter>()->GetMesh()->GetAnimInstance());
-	if (GetOwner()->HasAuthority() == true)
-	{
-		FSMComponent = GetOwner()->GetComponentByClass<UFSMComponent>();
-	}
+	FSMComponent = GetOwner()->GetComponentByClass<UFSMComponent>();
+}
+
+void USkillComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USkillComponent, bIsSkilling);
 }
 
 // Called every frame
@@ -68,4 +92,9 @@ void USkillComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+bool USkillComponent::IsSkilling() const
+{
+	return bIsSkilling;
 }
