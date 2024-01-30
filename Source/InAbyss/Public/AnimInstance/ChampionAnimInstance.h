@@ -20,22 +20,22 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	void PlayAttackMontage();
+	virtual void PlayAttackMontage();
 
-	void PlayQMontage();
-	void PlayWMontage();
-	void PlayEMontage();
-	void PlayRMontage();
+	virtual void PlayQMontage();
+	virtual void PlayWMontage();
+	virtual void PlayEMontage();
+	virtual void PlayRMontage();
 	
 
 	UFUNCTION()
-	void AnimNotify_ApplyDamage();
+	virtual void AnimNotify_ApplyDamage();
 	UFUNCTION()
 	virtual void AnimNotify_Q();
 	UFUNCTION()
-	void AnimNotify_EndAttack();
+	virtual void AnimNotify_EndAttack();
 	UFUNCTION()
-	void AnimNotify_EndSkill();
+	virtual void AnimNotify_EndSkill();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Meta = (AllowPrivateAccess))
