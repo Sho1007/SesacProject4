@@ -48,12 +48,14 @@ public:	// Mapping
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* IMC;
 
+	/*
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	class UGarenFSMComponent* FSMComponent;
 
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	class UGarenSkillComponent* SkillComponent;
-	
+	*/
+
 	UPROPERTY(EditDefaultsOnly, Meta = (AllowPrivateAccess))
 	class UStateComponentBase* StateComponentBase;
 
@@ -201,6 +203,9 @@ public: // 스킬 기능
 	void R_Skill_Garen();
 	
 	bool bIs_R_Move = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AActor> NSFactory;
 
 public: // 애니메이션
 	UPROPERTY()

@@ -5,6 +5,9 @@
 #include "Character/Garen.h"
 #include "Component/StateComponentBase.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Components/AudioComponent.h>
+#include <../../../../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h>
+#include "Enemy/MinionBase.h"
+#include "Building/Building_Base.h"
 
 void UGarenAnimInstance::NativeBeginPlay()
 {
@@ -84,6 +87,8 @@ void UGarenAnimInstance::PlayANM_Attack()
 
 				PlayANM_Q();
 
+				Owner->NSComp->Deactivate();
+
 				return;
 			}
 			else
@@ -127,6 +132,10 @@ void UGarenAnimInstance::PlayANM_Q()
 
 	Owner->ADComp->SetSound(Owner->GR_SkillSounds[1]);
 	Owner->ADComp->Play();
+
+	Owner->VoiceComp->SetSound(Owner->GR_SkillVoice[0]);
+	Owner->VoiceComp->Play();
+
 }
 void UGarenAnimInstance::PlayANM_E()
 {
@@ -140,6 +149,8 @@ void UGarenAnimInstance::PlayANM_E()
 			Owner->ADComp->SetSound(Owner->GR_SkillSounds[3]);
 			Owner->ADComp->Play();
 
+			Owner->VoiceComp->SetSound(Owner->GR_SkillVoice[1]);
+			Owner->VoiceComp->Play();
 
 			bIsSkilling_E = true;
 			
@@ -156,11 +167,19 @@ void UGarenAnimInstance::PlayANM_R()
 
 			Montage_Play(ANM_Skill_R);
 		
+			Owner->VoiceComp->SetSound(Owner->GR_SkillVoice[2]);
+			Owner->VoiceComp->Play();
+
+			class AActor* SpawnNS = GetWorld()->SpawnActor<AActor>(Owner->NSFactory, Owner->Target_Champion->GetActorLocation() + FVector(0,0,-90), FRotator(0)/*Owner->CurrentRotation*/);
+			
+			
+
 			bIsSkilling_R = true;
 		
 		}
 
 	}
+
 }
 
 // 플레이할 몽타주 함수 - 캐릭터에서 호출 ====================================================
@@ -186,7 +205,28 @@ void UGarenAnimInstance::AnimNotify_EndAttack_Garen()
 // ---------------------- Q ------------------------------
 void UGarenAnimInstance::AnimNotify_Skill_Q()
 {
-	Owner->Attack_Normal_Garen(); // 임시
+	//Owner->Attack_Normal_Garen(); // 임시
+
+	if (Owner->Target_Minion) {
+		UStateComponentBase* stateComp = Owner->Target_Minion->GetComponentByClass<UStateComponentBase>();
+
+		stateComp->ApplyDamage(Owner->StateComp_Garen->GetAttackDamage() * 1.3f, Owner->StateComp_Garen->GetAbilityPower() * 1.3f);
+
+
+	}
+	else if (Owner->Target_Champion) {
+		UStateComponentBase* stateComp = Owner->Target_Champion->GetComponentByClass<UStateComponentBase>();
+
+		stateComp->ApplyDamage(Owner->StateComp_Garen->GetAttackDamage() * 1.3f, Owner->StateComp_Garen->GetAbilityPower() * 1.3f);
+
+
+	}
+	else if (Owner->Target_Building) {
+		UStateComponentBase* stateComp = Owner->Target_Building->GetComponentByClass<UStateComponentBase>();
+
+		stateComp->ApplyDamage(Owner->StateComp_Garen->GetAttackDamage() * 1.3f, Owner->StateComp_Garen->GetAbilityPower() * 1.3f);
+
+	}
 
 }
 
@@ -226,7 +266,14 @@ void UGarenAnimInstance::AnimNotify_Skill_R()
 	Owner->ADComp->SetSound(Owner->GR_SkillSounds[5]);
 	Owner->ADComp->Play();
 
-	Owner->Attack_Normal_Garen(); // 임시
+	//Owner->Attack_Normal_Garen(); // 임시
+
+	if (Owner->Target_Champion) {
+		UStateComponentBase* stateComp = Owner->Target_Champion->GetComponentByClass<UStateComponentBase>();
+
+		stateComp->ApplyDamage(Owner->StateComp_Garen->GetAttackDamage() * 2.f, Owner->StateComp_Garen->GetAbilityPower() * 2.f);
+
+	}
 
 }
 
