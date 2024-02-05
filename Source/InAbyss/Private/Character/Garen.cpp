@@ -61,18 +61,18 @@ AGaren::AGaren()
 
 
 
+	VoiceComp = CreateDefaultSubobject<UAudioComponent>(TEXT("VoiceComp"));
+	VoiceComp->SetupAttachment(RootComponent);
 
-
-
-
+	/*
 	FSMComponent = CreateDefaultSubobject<UGarenFSMComponent>(TEXT("FSMComponent"));
 
 	SkillComponent = CreateDefaultSubobject<UGarenSkillComponent>(TEXT("SkillComponent "));
+	*/
 
 	// 상태 컴포넌트
 	StateComp_Garen = CreateDefaultSubobject<UStateComponentBase>(TEXT("StateComp_Garen"));
 	StateComp_Garen->SetObjectType(EObjectType::CHAMPION);
-
 
 
 }
@@ -99,7 +99,7 @@ void AGaren::BeginPlay()
 	GarenState = EGarenState::IDLE;
 
 
-	//CursorPlace = GetActorLocation();
+	CursorPlace = GetActorLocation();
 
 
 	GarenAnim = Cast<UGarenAnimInstance>(this->GetMesh()->GetAnimInstance());
@@ -133,7 +133,7 @@ void AGaren::Tick(float DeltaTime)
 	case EGarenState::MOVE:
 
 		//GarenAnim->PlayANM_Move();
-		//Move_Garen();
+		Move_Garen();
 
 		if (GarenAnim->bIsSkilling_E == true) {
 			break;
@@ -203,11 +203,13 @@ void AGaren::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
 	if (EnhancedInputComponent) {
+		
+		//FSMComponent->SetupPlayerInputComponent(EnhancedInputComponent); // 우클릭 
+		
 		// 마우스 우클릭 입력 - 이동 및 공격 타겟 설정
-		//EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Started, this, &AGaren::MouseRightClick);
-		//EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Triggered, this, &AGaren::MouseRightClick);
+		EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Started, this, &AGaren::MouseRightClick);
+		EnhancedInputComponent->BindAction(Mouse_Right_Action, ETriggerEvent::Triggered, this, &AGaren::MouseRightClick);
 
-		FSMComponent->SetupPlayerInputComponent(EnhancedInputComponent); // 우클릭 
 
 
 		// 마우스 좌클릭 입력
@@ -314,6 +316,7 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 		return;
 	}
 
+
 	// 저장된 액터가 있다면 모두 삭제
 	if (Target_Minion) {
 		Target_Minion = nullptr;
@@ -335,10 +338,10 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 		MouseHitActor = HitInfo.GetActor();
 		//UE_LOG(LogTemp, Warning, TEXT("MouseHitActor : %s"), *MouseHitActor->GetName());
 
-		/* //클릭한 위치 값을 가져오는 로그 // 저장된 액터의 정보를 가져오는 로그
+		//클릭한 위치 값을 가져오는 로그 // 저장된 액터의 정보를 가져오는 로그
 		UE_LOG(LogTemp, Warning, TEXT("CursorPlace: %s"), *CursorPlace.ToString());
 		UE_LOG(LogTemp, Warning, TEXT("MouseHitActor: %s"), *MouseHitActor->GetName());
-		*/
+		
 
 	}
 
@@ -374,6 +377,8 @@ void AGaren::MouseRightClick(const FInputActionValue& value)
 		}
 
 	}
+
+
 
 	// 목표 위치 값과의 거리가 멀면
 	if (MouseHitActor && FVector::Dist(this->GetActorLocation(), MouseHitActor->GetActorLocation()) > 0) {
@@ -423,6 +428,13 @@ void AGaren::KeyBoard_Q(const FInputActionValue& value)
 	ADComp->SetSound(GR_SkillSounds[0]);
 	ADComp->Play();
 
+	NSComp->SetAsset(SkillEffect[0]);
+
+	// W 스킬 이펙트 스폰
+	if (NSComp) {
+		NSComp->Activate();
+	}
+
 	// 공격을 안하고 있었다면 공격 대상이 지정되었을 때 q애니매이션을 호출함
 
 }
@@ -432,7 +444,7 @@ void AGaren::KeyBoard_W(const FInputActionValue& value)
 	//NSComp->SetVisibility(true);
 
 	// 사용할 이펙트 선택
-	NSComp->SetAsset(SkillEffect[0]);
+	NSComp->SetAsset(SkillEffect[1]);
 
 	// W 스킬 이펙트 스폰
 	if (NSComp) {
@@ -663,6 +675,8 @@ void AGaren::R_Skill_Garen()
 		if (FVector::Dist(GetActorLocation(), Target_Champion->GetActorLocation()) <= 500) { // 대상이 거리 안에 있다면
 			// 스킬 사용
 			GarenAnim->PlayANM_R();
+
+			// 이펙트 스폰
 
 		}
 		else if (FVector::Dist(GetActorLocation(), Target_Champion->GetActorLocation()) >= 500 && bIs_R_Move == false) { // 대상이 거리 안에 없다면
